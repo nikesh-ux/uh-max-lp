@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Max hero — event horizon</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;color:#fff;font-family:"Geist",-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.hero{position:relative;height:300svh;background:#000}
+.hst{position:sticky;top:0;height:100svh;overflow:hidden}
+#hc{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hmx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:italic 400 clamp(30px,7svh,66px)/1 "Instrument Serif",Georgia,serif;color:#fff;letter-spacing:.01em;text-shadow:0 0 18px rgba(170,215,255,.85),0 0 54px rgba(80,140,255,.6);pointer-events:none}
+.after{height:100svh;display:grid;place-items:center;background:#000;color:rgba(255,255,255,.55);font-size:15px;letter-spacing:-.01em}
+</style>
+</head>
+<body>
+<section class="hero" id="top" aria-label="Ultrahuman Max"><div class="hst"><canvas id="hc" aria-hidden="true"></canvas><div class="hmx" id="hmx">Max</div></div></section>
+<section class="after">The next section starts here</section>
+<script>
+/* hero: a black hole. A dark orb at the centre, an accretion band racing in on both sides, light pulled round it in arcs and streaming out above and below. */
+(function(){const sec=document.getElementById('top'),c=document.getElementById('hc');const gl=c.getContext('webgl',{antialias:false,alpha:false});if(!gl)return;
+  const FS=`precision highp float;uniform vec2 uRes,uPtr;uniform float uT,uS;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+7.1;a*=.5;}return s*1.07;}
+// the palette of the two references: white-pink hot core, orchid, violet, royal blue, deep navy
+vec3 ramp(float k){k=clamp(k,0.,1.);
+  vec3 a=vec3(.03,.05,.30),b=vec3(.14,.30,.95),c=vec3(.62,.46,1.),d=vec3(1.,.82,.97),e=vec3(1.,.97,.98);
+  vec3 r=mix(a,b,smoothstep(0.,.3,k));r=mix(r,c,smoothstep(.25,.6,k));r=mix(r,d,smoothstep(.55,.85,k));return mix(r,e,smoothstep(.85,1.,k));}
+void main(){vec2 uv=gl_FragCoord.xy/uRes;float asp=uRes.x/uRes.y;vec2 p=(uv-.5)*vec2(asp,1.);
+  vec2 pq=uPtr-.5;float t=uT*.35;
+  float zoom=1.-.12*uS;p*=zoom;
+  vec2 q=p+pq*vec2(.012,.01);
+  float R=.15*(1.+.18*uS);
+  float d=length(q),ax=abs(q.x),ang=atan(q.y,q.x),lr=log(max(d,1e-3)/R);
+  // the rim takes its colour from where you look: orchid-pink on one side, electric blue on the other, slowly turning
+  float tint=.5+.5*cos(ang-.9+.5*sin(t*.4));
+  vec3 rimc=mix(vec3(.86,.94,1.),vec3(.52,.76,1.),tint);
+  // a deep blue field, brightest where the light spills out of the orb
+  float la=.55+.55*sin(t*.4)+uS*1.2+pq.x*.6;vec2 ld=vec2(cos(la),-sin(la));
+  float gg=smoothstep(-.95,.95,dot(p,ld)+.15*sin(t*.5));
+  vec3 col=mix(vec3(.04,.14,.46),vec3(.32,.64,1.),gg);col*=1.-.3*smoothstep(.2,1.3,length(p));
+  // streams: strands wound in a log spiral, swept in and out again, thick above and below
+  float va=pow(abs(sin(ang)),1.6),flow=t*.55;
+  float wn=clamp(q.x/(R*.9),-1.,1.);wn=wn*(1.5-.5*wn*wn);
+  float a1=ang-1.25*lr*wn*sign(q.y+1e-4)-flow*.3*wn;vec2 nc=vec2(cos(a1),sin(a1));
+  float s1=fbm(nc*5.5+vec2(lr*1.1-flow,0.)+vec2(0.,uT*.03)),s2=fbm(nc*11.+vec2(lr*1.8-flow*1.4,3.1));
+  float strands=pow(smoothstep(.30,.82,s1*.7+s2*.55),1.25);
+  float fall=exp(-max(lr,0.)*.85)*smoothstep(0.,.3,lr);
+  col+=mix(vec3(.6,.8,1.),rimc,.35)*strands*va*fall*(1.+.7*uS)*.8;
+  // the accretion band, soft and wide, racing in
+  float th=.016+.060*exp(-max(ax-R*.8,0.)*2.4);
+  float band=exp(-pow(q.y/th,2.));
+  float st=fbm(vec2(ax*6.+t*1.6,q.y*(48.+20.*pq.x)))*.8+fbm(vec2(ax*15.+t*2.4,q.y*95.))*.35;
+  float dop=1.+.5*clamp(-q.x/(ax+.2),-1.,1.)*smoothstep(R,R*2.5,ax);
+  float bi=band*(.45+.9*pow(st,1.5))*smoothstep(R*.95,R*1.6,ax)*exp(-max(ax-R,0.)*.85)*dop;
+  col+=mix(ramp(.15+.8*exp(-max(ax-R,0.)*3.)),rimc,.35)*bi*1.4;
+  // light bent over the orb and back under it
+  float arc=exp(-pow((d-R*1.22)/(R*.15),2.))*(.25+.75*pow(abs(sin(ang)),1.2));
+  col+=mix(vec3(.9,.75,1.),rimc,.5)*arc*.55*(.8+.4*fbm(vec2(ang*3.,t)));
+  // particles: motes caught in the pull, spiralling in towards the horizon
+  for(int i=0;i<3;i++){float fi=float(i);vec2 u=vec2(ang*(16.+9.*fi)+lr*(2.5+fi)*sign(q.x+1e-4)*.0,lr*(10.+5.*fi)+t*(1.1+.5*fi));
+    vec2 id=floor(u),f=fract(u);float r=h(id+fi*17.);vec2 cc=vec2(.25+.5*h(id+3.),.25+.5*h(id+7.));
+    float dd=length((f-cc)*vec2(.8,1.));float dot_=smoothstep(.11+.07*r,0.,dd)*step(.84,r)*(.55+.45*sin(uT*(1.5+r*3.)+r*40.));
+    col+=vec3(.85,.94,1.)*dot_*smoothstep(0.,.35,lr)*exp(-max(lr,0.)*.55)*(.7+.3*fi)*1.1;}
+  // the rim: a thick, soft, luminous edge that glows both out into the field and into the orb
+  float out_=max(d-R,0.),in_=max(R-d,0.);
+  float rim=exp(-out_/(R*.07))*step(R,d)+exp(-in_/(R*.16))*step(d,R);
+  float halo=exp(-out_/(R*.55))*step(R,d);
+  float bright=.55+.65*tint+.15*sin(t*1.7);
+  col+=rimc*(rim*1.05*bright+halo*.45);
+  col+=vec3(1.,.93,1.)*exp(-pow((d-R*.995)/(R*.03),2.))*.9;
+  // the orb: black, with a ribbon of plasma curling just inside the rim
+  float inside=smoothstep(R+.0025,R-.0025,d);
+  vec2 oq=q/R;
+  float wv=vn(oq*1.15+vec2(t*.3,-t*.18)+vn(oq*1.6-t*.22)*1.3);wv=.5+(wv-.5)*1.6;
+  float rib=exp(-pow((wv-.56)/.14,2.))*smoothstep(.35,.95,d/R);
+  vec3 ic=vec3(.0,.003,.02)+rimc*rib*.5*(.7+.5*sin(t*.8+ang))+rimc*exp(-in_/(R*.16))*.5*bright;
+  ic+=ramp(.95)*exp(-pow((wv-.56)/.04,2.))*.28*smoothstep(.45,.95,d/R);
+  col=mix(col,ic,inside);
+  vec2 sg=floor(gl_FragCoord.xy/2.);float star=step(.9988,h(sg))*(.5+.5*sin(uT*2.+h(sg+3.)*40.));col+=vec3(.8,.85,1.)*star*.7*(1.-clamp(dot(col,vec3(1.)),0.,1.));
+  col=col/(1.+.22*col*col);
+  col*=1.-.5*smoothstep(.55,1.35,length(p*vec2(.8,1.)));
+  col+=(h(gl_FragCoord.xy+fract(uT)*91.)-.5)*.028;
+  gl_FragColor=vec4(col,1.);}`;
+  const mk=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(o));throw 0}return o};
+  let pr;try{pr=gl.createProgram();gl.attachShader(pr,mk(gl.VERTEX_SHADER,'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'));gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr)}catch(e){return}
+  gl.useProgram(pr);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const l=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+  const uR=gl.getUniformLocation(pr,'uRes'),uT=gl.getUniformLocation(pr,'uT'),uP=gl.getUniformLocation(pr,'uPtr'),uS=gl.getUniformLocation(pr,'uS');
+  let px=.5,py=.5,tx=.5,ty=.5,S=0,t0=performance.now();
+  addEventListener('pointermove',e=>{tx=e.clientX/innerWidth;ty=1-e.clientY/innerHeight});
+  function fit(){const d=Math.min(1.5,devicePixelRatio||1)*.85;c.width=Math.round(innerWidth*d);c.height=Math.round(innerHeight*d);gl.viewport(0,0,c.width,c.height)}
+  function loop(now){const r=sec.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight){
+      const x=Math.max(0,Math.min(1,-r.top/Math.max(1,r.height-innerHeight)));S+=(x-S)*.08;px+=(tx-px)*.06;py+=(ty-py)*.06;
+      gl.uniform2f(uR,c.width,c.height);gl.uniform2f(uP,px,py);gl.uniform1f(uS,S);gl.uniform1f(uT,(now-t0)/1000);gl.drawArrays(gl.TRIANGLES,0,3)}
+    requestAnimationFrame(loop)}
+  addEventListener('resize',fit);fit();requestAnimationFrame(loop)})();
+</script>
+</body>
+</html>

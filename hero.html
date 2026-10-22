@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Max hero</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;color:#fff;font-family:"Geist",-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.hero{position:relative;height:380svh;background:#000}
+.hst{position:sticky;top:0;height:100svh;overflow:hidden}
+#hc{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hmx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:italic 400 clamp(34px,8svh,76px)/1 "Instrument Serif",Georgia,serif;color:#fff;letter-spacing:.01em;text-shadow:0 0 22px rgba(160,210,255,.9),0 0 60px rgba(90,150,255,.7);opacity:0;pointer-events:none}
+.after{height:100svh;display:grid;place-items:center;background:#000;color:rgba(255,255,255,.55);font-size:15px;letter-spacing:-.01em}
+</style>
+</head>
+<body>
+<section class="hero" id="top" aria-label="Ultrahuman Max"><div class="hst"><canvas id="hc" aria-hidden="true"></canvas><div class="hmx" id="hmx">Max</div></div></section>
+<section class="after">The next section starts here</section>
+<script>
+/* hero: a dark orb rising out of a blue field, plasma curling inside it; on scroll it settles into a small sphere on black */
+(function(){const sec=document.getElementById('top'),c=document.getElementById('hc'),mx=document.getElementById('hmx');const gl=c.getContext('webgl',{antialias:false,alpha:false});if(!gl)return;
+  const FS=`precision highp float;uniform vec2 uRes;uniform float uT,uS;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+7.1;a*=.5;}return s*1.07;}
+void main(){vec2 uv=gl_FragCoord.xy/uRes;uv.y=1.-uv.y;float asp=uRes.x/uRes.y;vec2 p=(uv-vec2(.5,0.))*vec2(asp,1.);
+  float t=uT*.32;
+  // scroll: the orb settles from a huge arc rising out of the bottom to a small sphere in the dark
+  float k=smoothstep(.10,.84,uS);k=k*k*(3.-2.*k);
+  float R=mix(.80,.15,k);vec2 C=vec2(0.,mix(1.12,.5,k));
+  float field=1.-smoothstep(.12,.80,uS);
+  // the blue field, its light drifting slowly round
+  float la=.55+.55*sin(t*.4)+uS*1.2;vec2 ld=vec2(cos(la),-sin(la));
+  vec3 bgA=vec3(.32,.64,1.),bgB=vec3(.04,.14,.46);
+  float g=smoothstep(-.95,.95,dot(p,ld)+.15*sin(t*.5));
+  vec3 bg=mix(bgB,bgA,g);bg*=1.-.3*smoothstep(.2,1.3,length(p-vec2(0.,.15)));
+  vec3 col=bg*field;
+  vec2 q=p-C;float d=length(q);float ang=atan(q.y,q.x);
+  float rimL=.5+.5*cos(ang-atan(ld.y,ld.x));
+  float pulse=.82+.18*sin(t*.9);
+  // glow outside the rim, strongest on the lit side
+  float out_=max(d-R,0.);
+  col+=vec3(.50,.80,1.)*exp(-out_/(.05+.05*R))*(.25+.9*rimL*rimL)*pulse*(.5+.5*field+.5*(1.-field));
+  float inside=smoothstep(R+.004,R-.004,d);
+  // inside: a black core, lit only from its rim
+  vec3 ic=vec3(.0,.004,.02);
+  float rr=d/max(R,1e-3);
+  ic+=vec3(.12,.34,.80)*smoothstep(.55,1.,rr)*(.25+.75*rimL)*pulse;
+  // as it settles it takes on the Max icon's glass body: royal blue, with glints down both edges
+  float bodyA=smoothstep(.55,.95,uS)*.62;vec2 qn=q/max(R,1e-3);
+  vec3 body=mix(vec3(.08,.16,.52),vec3(.18,.32,.85),smoothstep(-.8,.8,-qn.y+.2));
+  ic=mix(ic,body*(.62+.38*(1.-rr*rr)),bodyA);
+  float g1=exp(-pow((qn.x+.80)/.07,2.)-pow((qn.y+.02)/.30,2.));
+  float g2=exp(-pow((qn.x-.84)/.055,2.)-pow((qn.y-.08)/.22,2.));
+  float g3=exp(-pow((qn.x+.55)/.30,2.)-pow((qn.y+.78)/.10,2.))*.5;
+  ic+=vec3(.75,.88,1.)*(g1*.8+g2*.6+g3*.5)*smoothstep(.55,.95,uS);
+  // plasma ribbons that curl in from the rim and flow
+  float rib=0.;
+  for(int i=0;i<3;i++){float fi=float(i);
+    float rc=.80+.12*sin(ang*2.+t*1.1+fi*2.3)+.07*sin(ang*3.-t*.8+fi);
+    rc-=.55*smoothstep(-2.7,-.2,ang+fi*.35)*step(fi,.5)*(1.-smoothstep(-.2,.5,ang));   // the first one curls in toward the middle
+    vec2 cs=vec2(cos(ang),sin(ang));float w=.045+.035*fbm(cs*1.6+vec2(fi*5.+t*.4,fi*2.));
+    float rb=exp(-pow((rr-rc)/w,2.));
+    float ma=smoothstep(.28,.78,fbm(cs*1.3+vec2(t*.35+fi*3.7,t*.25+fi)));
+    float fl=.45+.9*fbm(cs*2.2+vec2(t*.9+rr*3.,rr*4.-t));
+    rib+=rb*ma*fl*(.9-.2*fi);}
+  rib*=1.-.5*smoothstep(.55,.95,uS);
+  vec3 rcol=mix(vec3(.25,.55,1.),vec3(.85,.96,1.),clamp(rib*.9,0.,1.));
+  ic+=rcol*rib*.9*pulse*smoothstep(.3,.9,rr+.2);
+  // the bright rim line
+  float line=exp(-pow((d-R)/(.010+.012*R),2.))*(.35+1.0*rimL)*pulse;
+  vec3 lc=mix(vec3(.55,.82,1.),vec3(.95,.99,1.),rimL);
+  lc=mix(lc,vec3(.82,.62,1.),.35*(.5+.5*sin(ang*3.+t))*smoothstep(.5,1.,uS));   // a faint iridescent fringe on the rim, like the icon's glass edge
+  col=mix(col,ic,inside);
+  col+=lc*line;
+  col=1.-exp(-col*1.25);
+  // grains: crisp flakes gathered into clouds and veins over the soft body, shedding off the rim
+  {vec2 qn=q/max(R,1e-3);float rn=d/max(R,1e-3);
+   vec2 wq=qn+.28*vec2(fbm(qn*2.+t*.25),fbm(qn*2.+5.-t*.25))-.14;
+   float den=fbm(wq*3.3+vec2(t*.25,-t*.25));
+   float vein=smoothstep(.45,.72,fbm(wq*2.4+vec2(-t*.4,t*.3)+9.));
+   float inn=smoothstep(1.03,.95,rn);
+   float lit=.4+.6*dot(col,vec3(.3,.59,.11));
+   float prob=inn*(.06+.55*smoothstep(.38,.8,den)+.45*vein*den)
+     +(1.-inn)*smoothstep(1.55,1.0,rn)*vein*(.1+.6*den)*(.4+.6*rimL);
+   prob*=.55+.45*smoothstep(.0,.9,uS+.35);
+   vec2 fc=gl_FragCoord.xy;float cell=max(2.4,uRes.y/330.);
+   for(int i=0;i<3;i++){float fi=float(i);float cs=cell*(1.+.7*fi);
+     vec2 fr0=fi>1.5?vec2(.8*fc.x+.6*fc.y,-.6*fc.x+.8*fc.y)+37.:(fi>.5?vec2(.6*fc.x-.8*fc.y,.8*fc.x+.6*fc.y)+11.:fc);
+     vec2 gp=fr0/cs,gid=floor(gp),gf=fract(gp)-.5;
+     float ra=h(gid+5.+fi)*6.283;vec2 gr=vec2(cos(ra)*gf.x+sin(ra)*gf.y,-sin(ra)*gf.x+cos(ra)*gf.y);
+     gr-=(vec2(h(gid+3.),h(gid+7.))-.5)*.6;
+     float sx=.2+.3*h(gid+11.),sy=sx*(.45+.5*h(gid+13.));
+     float shp=smoothstep(1.,.5,length(gr/vec2(sx,sy)));
+     float on=step(h(gid+9.+fi),prob)*shp;
+     vec3 gc=mix(vec3(.50,.95,1.),vec3(.88,.94,1.),h(gid+17.)*.6);
+     gc=mix(gc,vec3(.70,.62,1.),smoothstep(.45,.8,fbm(wq*2.+11.))*.4);
+     gc*=(.7+.7*lit)*(.75+.5*h(gid+19.));
+     col=mix(col,gc,on*(.9-.15*fi));}}
+  col+=(h(gl_FragCoord.xy+fract(uT)*91.)-.5)*.015;
+  gl_FragColor=vec4(col,1.);}`;
+  const mk=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(o));throw 0}return o};
+  let pr;try{pr=gl.createProgram();gl.attachShader(pr,mk(gl.VERTEX_SHADER,'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'));gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr)}catch(e){return}
+  gl.useProgram(pr);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const l=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+  const uR=gl.getUniformLocation(pr,'uRes'),uT=gl.getUniformLocation(pr,'uT'),uS=gl.getUniformLocation(pr,'uS');let ps=0,t0=performance.now(),lt=t0;
+  function fit(){const d=Math.min(devicePixelRatio||1,1.5)*.8;c.width=Math.round(innerWidth*d);c.height=Math.round(innerHeight*d);gl.viewport(0,0,c.width,c.height)}
+  addEventListener('resize',fit);fit();
+  function loop(now){const dt=Math.min(.05,(now-lt)/1000);lt=now;const r=sec.getBoundingClientRect();
+    if(r.bottom>-100&&r.top<innerHeight){const x=Math.max(0,Math.min(1,-r.top/Math.max(1,r.height-innerHeight)));ps+=(x-ps)*(1-Math.pow(.004,dt));
+      gl.uniform2f(uR,c.width,c.height);gl.uniform1f(uT,(now-t0)/1000);gl.uniform1f(uS,ps);gl.drawArrays(gl.TRIANGLES,0,3);
+      const o=Math.max(0,Math.min(1,(ps-.78)/.16));mx.style.opacity=o.toFixed(3);mx.style.filter='blur('+((1-o)*10).toFixed(1)+'px)'}
+    requestAnimationFrame(loop)}
+  requestAnimationFrame(loop)})();
+</script>
+</body>
+</html>

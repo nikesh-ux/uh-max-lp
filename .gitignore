@@ -1,0 +1,8 @@
+# version backups and scratch
+*.v[0-9]*.html
+*.v[0-9]*.py
+refv/
+.DS_Store
+# unused Figma placeholder captures
+img/x/uhx-coverage.png
+img/x/uhx-wrapper.png

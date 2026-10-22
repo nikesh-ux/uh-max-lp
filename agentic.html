@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zoom-blur light stage</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#05060a;color:#fff;font-family:"Geist",-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.bar{position:fixed;left:0;right:0;top:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:15px;letter-spacing:-.01em;z-index:3}
+.bar b{font-weight:500}.bar span{color:rgba(255,255,255,.55);margin-left:8px}
+.bar .r{display:flex;align-items:center;gap:34px}
+.bar a{background:#fff;color:#000;border-radius:999px;padding:11px 20px;font-weight:500;font-size:15px;text-decoration:none}
+h1{transition:opacity .7s,filter .7s,transform .8s cubic-bezier(.2,.8,.2,1);position:fixed;left:8.8%;top:38%;margin:0;font-weight:400;letter-spacing:-.055em;font-size:clamp(56px,7.2vw,150px);line-height:1;z-index:2}
+p{transition:opacity .7s .05s,filter .7s .05s,transform .8s .05s cubic-bezier(.2,.8,.2,1);position:fixed;left:8.8%;top:55.5%;margin:0;font-size:clamp(17px,1.9vw,38px);letter-spacing:-.025em;font-weight:400;z-index:2}
+h1.out,p.out{opacity:0;filter:blur(14px);transform:translateY(-18px)}
+#tg{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;display:flex;padding:4px;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.2)}
+#tg button{appearance:none;border:0;background:transparent;cursor:pointer;padding:9px 22px;border-radius:999px;font:500 14px/1 "Geist",system-ui,sans-serif;color:#fff;transition:background .25s,color .25s}
+#tg button.on{background:#fff;color:#0a0a0a}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar"><div><b>Ultrahuman Max</b><span>PowerPlugs</span></div><div class="r"><span style="margin:0;color:#fff">Ultrahuman.com</span><a href="#">Download the app</a></div></div>
+<h1 id="t">Everything</h1>
+<p id="sub">Your ring, fully unlocked</p>
+<div id="sp" style="height:480vh"></div>
+<div id="tg"><button data-v="1" class="on">V1</button><button data-v="2">V2</button><button data-v="3">V3</button></div>
+<script>
+const cv=document.getElementById('c'),gl=cv.getContext('webgl',{antialias:false});
+const vs='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const COMMON=`precision highp float;uniform vec2 uRes,uPtr,uC;uniform float uT,uScr;uniform sampler2D uImg;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<3;i++){s+=a*vn(p);p=p*2.1+3.7;a*=.5;}return s;}
+// soft rectangle (u0,v0,u1,v1) in screen uv, v measured from the top
+float rect(vec2 q,vec4 r,float e){vec2 a=smoothstep(r.xy-e,r.xy+e,q),b=smoothstep(r.zw+e,r.zw-e,q);return a.x*a.y*b.x*b.y;}
+// the lit stage that gets smeared: emissive screens in a dark room with a glossy floor
+vec3 stars(vec2 q){vec2 sg=floor(q*vec2(520.,300.));float rr=h(sg);return vec3(.9,.95,1.)*step(.9988,rr)*(1.4+2.*h(sg+4.));}
+vec4 shr(vec4 r,float k){vec2 c=(r.xy+r.zw)*.5,hh=(r.zw-r.xy)*.5*k;return vec4(c-hh,c+hh);}
+vec3 ph(float i,vec2 l){vec2 cell=vec2(mod(i,3.),floor(i/3.));return texture2D(uImg,(cell+clamp(l,.015,.985))/3.).rgb;}
+vec3 pnl(vec2 qq,vec4 r,float idx,float e,float gain){float m=rect(qq,r,e);if(m<.001)return vec3(0.);vec2 l=(qq-r.xy)/(r.zw-r.xy);vec3 pc=ph(idx,l);float lu=dot(pc,vec3(.3,.59,.11));pc=mix(vec3(lu),pc,.95);return m*pc*gain*1.1;}
+float PAR(float depth){return (uScr*.62+sin(uT*.21)*.05+uPtr.x*.035)*depth;}
+vec3 wall(vec2 q0){
+  vec2 q=q0;
+  float T=uT*.3;
+  vec3 c=vec3(.012,.014,.03);
+  vec2 d0=q-vec2(.47,.5);float an=atan(-d0.y,d0.x)/3.14159+uScr*.18+sin(uT*.1)*.03,rr=length(d0*vec2(1.7,1.));
+  vec3 ac=mix(vec3(.95,.40,.50),vec3(.18,.55,.65),smoothstep(.55,.40,an));
+  ac=mix(ac,vec3(.50,.35,1.),smoothstep(.34,.22,an));
+  ac=mix(ac,vec3(.45,.80,.85),smoothstep(.16,.04,an));
+  ac=mix(ac,vec3(.58,.40,.24),smoothstep(-.06,-.2,an));
+  float st=fbm(vec2(an*13.+uT*.09,rr*1.6-uT*.4));c+=ac*pow(clamp(st*1.7,0.,1.5),2.6)*.45*smoothstep(.10,.55,rr)*(.5+1.0*vn(vec2(an*55.,T*2.)))*(.8+.4*sin(uT*.6+an*5.));
+  float fx=.35+1.25*fbm(q*vec2(46.,3.)+T);float fy=.4+1.2*fbm(q*vec2(3.,40.)-T);
+  // every screen carries a picture, so the rays that come off it are made of real colours
+  c+=pnl(q0+vec2(PAR(1.0),-uScr*.05),shr(vec4(-.05,-.05,.445,.54),.58),1.,.012,.95)*(1.15-.6*q.y);
+  c+=pnl(q0+vec2(PAR(.7),0.),shr(vec4(.27,-.05,.44,.40),.58),0.,.01,1.0);
+  c+=pnl(q0+vec2(PAR(.5),0.),shr(vec4(.47,-.05,.74,.16),.58),6.,.012,1.0);
+  c+=pnl(q0+vec2(PAR(.35),0.),vec4(.462,.285,.575,.445),5.,.006,1.3);
+  c+=pnl(q0+vec2(PAR(.9),uScr*.04),shr(vec4(.585,.08,1.05,.45),.58),2.,.012,1.0);
+  c+=pnl(q0+vec2(PAR(.6),0.),shr(vec4(.54,.45,1.05,.60),.58),4.,.01,.9);
+  c+=pnl(q,vec4(.50,.46,.62,.66),7.,.01,.8);
+  c+=pnl(q0+vec2(PAR(.5),0.),shr(vec4(-.05,.40,.50,.64),.7),6.,.02,.42);
+  c+=pnl(q0+vec2(PAR(.4),0.),shr(vec4(.30,.30,.62,.62),.6),1.,.02,.3);
+  c+=pnl(q0+vec2(PAR(.25),0.),shr(vec4(.36,-.05,.60,.70),.58),3.,.02,.32);
+  c+=pnl(q0+vec2(PAR(.2),0.),shr(vec4(.30,.54,.56,.80),.58),8.,.02,.28);
+  for(int i=0;i<10;i++){float fi=float(i);float ang=h(vec2(fi,3.))*6.2832,rad=.16+.3*h(vec2(fi,4.));
+    vec2 ctr=vec2(.47,.5)+vec2(cos(ang)*rad*1.5,sin(ang)*rad*.8);float sz=.03+.05*h(vec2(fi,5.));
+    c+=pnl(q0+vec2(PAR(.3+.7*h(vec2(fi,6.))),0.),vec4(ctr.x-sz*1.4,ctr.y-sz,ctr.x+sz*1.4,ctr.y+sz),mod(fi*2.+1.,9.),.004,1.1);}
+  // dark floor line on the left
+  c*=1.-rect(q,vec4(-.05,.55,.46,.66),.01)*.2;
+  // the dark pillar
+  c*=1.-rect(q0+vec2(PAR(.15),0.),vec4(.4565,-.05,.4685,.66),.004)*.55;
+  c+=stars(q)*step(q.y,.66);
+  return c;}
+vec3 scene(vec2 q){
+  float hz=.665;
+  vec3 c;
+  if(q.y<hz){c=wall(q);}
+  else{
+    // glossy floor: mirror the stage, blurred a little, fading away from the horizon
+    float dy=q.y-hz;vec2 m=vec2(q.x,hz-dy*.78);
+    vec3 r=(wall(m)+wall(m+vec2(0.,.02)))*.5;
+    float fade=exp(-dy*2.1);
+    c=r*fade*1.15;
+    c+=vec3(.55,.58,.62)*rect(q,vec4(-.05,.70,.42,1.05),.08)*(.30+.5*fbm(vec2(q.x*7.,q.y*30.)))*exp(-dy*1.1);
+    c+=vec3(.20,.22,.45)*rect(q,vec4(.60,.66,1.05,.90),.06)*(.4+.6*fbm(vec2(q.x*5.,q.y*26.)))*exp(-dy*1.6);
+    c+=vec3(.012,.014,.03);
+    c+=stars(q)*exp(-dy*1.4)*.9;
+  }
+  return c;}
+`;
+const F1=COMMON+`void main(){vec2 q0=gl_FragCoord.xy/uRes;q0.y=1.-q0.y;
+  vec2 C=uC;vec3 c=vec3(0.);
+  for(int k=0;k<2;k++){float ph=fract(uT*.075+float(k)*.5),w=1.-abs(2.*ph-1.);w=w*w*(3.-2.*w);
+    vec2 q=C+(q0-C)*exp2(-ph*1.25);       // the pictures drift slowly toward you and dissolve into the next layer
+    c+=scene(q)*w;}
+  gl_FragColor=vec4(c,1.);}`;
+const F2=`precision highp float;uniform vec2 uRes,uPtr,uWake,uWV,uC;uniform float uT,uScr,uLiq,uMono;uniform vec3 uRing;uniform sampler2D uS;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+vec3 S(vec2 q){return texture2D(uS,vec2(q.x,1.-q.y)).rgb;}
+float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fb2(vec2 p){return .6*vnoise(p)+.4*vnoise(p*2.1+4.3);}
+// liquid skin: slow flowing warp, plus a soft wake that follows the pointer and settles back
+vec2 liquid(vec2 q){
+  float T=uT*.18;vec2 w=vec2(fb2(q*vec2(3.,2.4)+vec2(T,-T*.7)),fb2(q*vec2(3.,2.4)+vec2(5.2-T*.8,T)))-.5;
+  vec2 d=w*.024;
+  vec2 pd=q-uWake;pd.x*=uRes.x/uRes.y;float g=exp(-dot(pd,pd)*22.);
+  d+=uWV*g*.4;
+  return d*uLiq;}
+void main(){
+  vec2 fc=gl_FragCoord.xy;vec2 q=vec2(fc.x/uRes.x,1.-fc.y/uRes.y);
+  float roll=.10*sin(uScr*4.2)+.03*sin(uT*.17);
+  vec2 C=uC+vec2(.17*sin(uScr*3.3)+.02*sin(uT*.2),-.08*uScr);
+  q+=liquid(q);
+  vec2 d=q-C;d=mat2(cos(roll),-sin(roll),sin(roll),cos(roll))*d;
+  vec3 acc=vec3(0.);float ws=0.;const int N=34;
+  float ab=atan(d.y,d.x)*5.2,pb=mix(h(vec2(floor(ab),3.)),h(vec2(floor(ab)+1.,3.)),smoothstep(0.,1.,fract(ab)));float L=.9+.05*sin(uT*.7)+.06*sin(uScr*6.);
+  for(int i=0;i<N;i++){float u=float(i)/float(N-1),t=pow(u,1.45);
+    float w=mix(2.2,1.,smoothstep(0.,.1,u))*(1.-u*.42);
+    float pulse=.5+.5*sin(6.2832*(u*3.2+uT*.32+pb));
+    w*=mix(1.,.45+1.1*pulse,smoothstep(.04,.3,u));
+    vec3 col=vec3(S(C+d*(1.-t*L*1.07)).r,S(C+d*(1.-t*L)).g,S(C+d*(1.-t*L*.93)).b);
+    float lum=dot(col,vec3(.3,.59,.11));acc+=col*w*(1.+.5*smoothstep(.55,1.1,lum));ws+=w;}
+  vec3 col=acc/ws;
+  // sparse particles streaming out of the vanishing point: cheap polar-cell field, three depth layers
+  {vec2 pd=q-C;pd.x*=uRes.x/uRes.y;float r=length(pd)+1e-4,a=atan(pd.y,pd.x);float P=0.;
+   for(int k=0;k<3;k++){float fk=float(k);float K=80.+60.*fk,M=6.+2.5*fk,sp=.11+.055*fk;
+     float lr=log(r)*M-uT*sp*M*2.2,ac=a*K/6.2832;vec2 cid=vec2(floor(ac),floor(lr)),cf=vec2(fract(ac),fract(lr));
+     float rn=h(cid+fk*17.);if(rn<mix(.95,.885,uMono))continue;
+     vec2 cp=vec2(.25+.5*h(cid+3.),.25+.5*h(cid+7.));
+     float ox=(cf.x-cp.x)*r*6.2832/K,oy=(cf.y-cp.y)*r/M;
+     float rho=.00075*(.8+r*.8),st=1.;
+     float g=exp(-(ox*ox)/(rho*rho)-(oy*oy)/(rho*rho*st*st));
+     P+=g*(.5+.9*h(cid+11.))*smoothstep(.03,.28,r)*(1.-smoothstep(.85,1.3,r));}
+   col+=vec3(.92,.95,1.)*P*(.7+.5*uMono);}
+  if(uMono>.5){ // a ring made of dust, shedding grains along the rays toward the viewer
+    vec2 pp=q;pp.x*=uRes.x/uRes.y;vec2 Ca=C;Ca.x*=uRes.x/uRes.y;
+    vec2 rc=vec2(uRing.x*uRes.x/uRes.y,uRing.y-(uScr-.5)*.16)+vec2(.012*sin(uT*.4),.008*cos(uT*.33));
+    float ex=.78+.18*sin(uScr*3.+uT*.2),rr=uRing.z;
+    float cs=.0032;vec2 id=floor(pp/cs);float r1=h(id+2.),r2=h(id+9.);
+    float sl=.07*r1*r1;vec2 dr=normalize(pp-Ca+1e-4);vec2 p0=pp-dr*sl;
+    vec2 e=(p0-rc)/vec2(1.,ex);float dd=abs(length(e)-rr);
+    float prob=smoothstep(.016,.0,dd)*1.25*(1.-sl/.07*.6);
+    float inner=smoothstep(.07,.0,abs(length((p0-rc)/vec2(1.,ex*.96))-rr*.86))*.35;
+    float on=step(r2,prob+inner*.5);
+    vec2 gf=fract(pp/cs)-.5-(vec2(r1,h(id+4.))-.5)*.7;on*=smoothstep(.36,.14,length(gf));
+    col+=vec3(.95)*on*(.55+.7*h(id+5.));}
+  col=max(col-.01,0.);col=pow(col,vec3(1.08));float l=dot(col,vec3(.3,.59,.11));col=mix(vec3(l),col,1.1);
+  col=1.-exp(-col*1.45);col=mix(col,col*col*(3.-2.*col),.25*uLiq);col+=(h(fc+uT*37.)-.5)*.018;
+  col*=1.-.55*smoothstep(.55,1.25,length((q-.5)*vec2(1.15,1.)));
+  if(uMono>.5){float g=dot(col,vec3(.3,.59,.11));g=pow(clamp(g*1.02,0.,1.),1.9);vec2 sg=floor(fc/2.);float sp=step(.99,h(sg+3.))*(.3+.4*h(sg));col=vec3(g*(1.-sp)*1.08);}
+  gl_FragColor=vec4(col,1.);}`;
+function prog(f){const mk=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o};
+  const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,vs));gl.attachShader(p,mk(gl.FRAGMENT_SHADER,f));gl.linkProgram(p);return p}
+const F3=`precision highp float;uniform vec2 uRes,uC;uniform float uT,uScr;uniform sampler2D uObj;uniform vec3 uBg;uniform float uImgA,uIn,uOff;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+vec3 O(vec2 u){return texture2D(uObj,clamp(u,.001,.999)).rgb;}
+vec3 pal(float l){return mix(mix(vec3(.50,.40,.33),vec3(.88,.62,.47),smoothstep(.15,.55,l)),vec3(.98,.88,.68),smoothstep(.55,.95,l));}
+float vn3(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm3(vec2 p){return .6*vn3(p)+.4*vn3(p*2.1+4.3);}
+float WIN(vec2 u){vec2 d=(u-vec2(.5,.55))/vec2(.17,.24);return smoothstep(1.,.55,length(d));}
+float M(vec2 u){if(u.x<.0||u.y<.0||u.x>1.||u.y>1.)return 0.;vec3 c=O(u);vec3 bl=(O(vec2(u.x-.23,u.y))+O(vec2(u.x+.23,u.y)))*.5;   // the backdrop at the same height, either side of the object
+  return WIN(u)*smoothstep(.02,.07,distance(c,bl));}   // the object: a window round the centre, strongest where it differs from the backdrop
+void main(){
+  vec2 fc=gl_FragCoord.xy;vec2 uv=vec2(fc.x/uRes.x,1.-fc.y/uRes.y);float asp=uRes.x/uRes.y;
+  vec2 hp=vec2((uv.x-.5)*asp,uv.y-.5);
+  float yaw=(uC.x-.49)*1.3+sin(uT*.17)*.05,tilt=(uC.y-.62)*.8+sin(uT*.13)*.03;
+  // the object stands right of the headline; turning the view shears and foreshortens it
+  float rr0=asp/uImgA;vec2 p0=uv-.5;p0=rr0>1.?vec2(p0.x,p0.y/rr0):vec2(p0.x*rr0,p0.y);
+  float Z=1.7;vec2 oc0=vec2(.5,.55);                      // zoom about the object so it holds the centre of the frame
+  vec2 pu=(p0+.5-oc0-vec2(0.,uOff))/Z+oc0;     // uOff slides the object down the frame
+  pu.x+=(pu.y-.5)*yaw*.16;pu.y+=(pu.x-.5)*tilt*.12;
+  pu=(pu-.5)/(1.+(pu.x-.5)*yaw*.2)+.5;
+  // the whole photograph is the backdrop, set in motion: slow waves ripple it and fine grain eats it toward the edges
+  float outer=smoothstep(.12,.62,length((pu-vec2(.5,.55))*vec2(1.25,1.)));
+  vec2 wv=vec2(.007*sin(pu.y*13.+uT*.45)+.004*sin(pu.y*31.-uT*.7),.006*sin(pu.x*10.+uT*.38)+.003*sin(pu.x*27.+uT*.6))*(.25+.75*outer);
+  vec2 w2=vec2(fbm3(pu*vec2(2.,3.)+uT*.04),fbm3(pu*vec2(2.,3.)+5.-uT*.035))-.5;    // slow organic swell
+  vec2 pw=pu+wv+w2*.05*(.3+.7*outer);
+  float wb=sin(pu.y*8.5+w2.x*5.5+uT*.25),wb2=sin(pu.y*4.+pu.x*2.5+w2.y*4.-uT*.18);
+  float cell=max(2.,uRes.y/560.);vec2 id=floor(fc/cell);
+  vec2 jb=(vec2(h(id+21.),h(id+23.))-.5);
+  vec3 bi=O(pw+jb*(.0008+.004*outer));
+  vec3 bg=bi;                                   // the photograph's own champagne-olive, untinted
+  bg*=1.+.09*wb*(.4+.6*outer)+.05*wb2;bg+=vec3(.05,.045,.02)*max(wb,0.)*(.3+.7*outer);   // faded, rolling bands of light
+  bg*=1.-.28*smoothstep(.55,.0,uv.x);          // a little quieter behind the headline, same hue                 // quieter behind the headline
+    // loose specks that carry colour from further away
+  // soft luminous trails sliding across the frame
+  float tr=0.;for(int k=0;k<4;k++){float fk=float(k);float yk=.28+.17*fk;float dy=pu.y-yk-.03*sin(pu.x*7.+uT*.3+fk*2.);
+    tr+=exp(-dy*dy/(.00012+.0001*fk))*smoothstep(.0,.35,pu.x)*(.5+.5*sin(pu.x*3.-uT*.4+fk*5.));}
+  bg+=vec3(1.,.82,.55)*tr*.2;
+  vec3 col=bg;
+  // palette the object into the same warm family, so it reads as part of the air
+  float lm0=dot(O(pu),vec3(.3,.59,.11));
+  // the object smears softly out to the left, so its edges melt into the haze behind the headline
+  float cm=0.,cw=0.;vec3 cc=vec3(0.);
+  for(int k=0;k<8;k++){float fk=(float(k)+h(fc*.37+float(k)*3.1))/8.;float w=(1.-fk)*(1.-fk)+.03;
+    vec2 sp=pu+vec2(fk*.30,(fk-.3)*.02);float mk=M(sp);
+    cm+=mk*w;cc+=O(sp)*mk*w;cw+=w;}
+  cc=cc/max(cm,.001);cm/=cw;
+  vec3 body=cc;
+  col=mix(col,body,smoothstep(.015,.35,cm)*.85*smoothstep(.62,.25,pu.x));
+  // the object, stippled: sand that thickens and scatters toward its far side
+  float rd=length((pu-vec2(.5,.55))/vec2(.16,.22));float dis=clamp(.9*smoothstep(.45,1.3,rd)+.25*smoothstep(.5,.9,pu.x+.04*sin(uT*.2+pu.y*3.)),0.,1.);
+  vec2 j=vec2(h(id+1.+floor(uT*5.)*(.2+.8*dis)),h(id+3.))-.5;
+  vec2 su=pu+j*(.005+.06*dis);float mm=M(su);
+  float keep=step(h(id+7.),mm*(1.75-.8*dis));   // the product is built from sand again: every cell is either grain or air
+  vec3 oc=O(su);oc=mix(oc,pal(dot(oc,vec3(.3,.59,.11))),.0);
+  oc=mix(col,oc,smoothstep(.05,.4,mm));   // where the object is faint, the grain takes the haze's own colour, so no halo shows
+  col=mix(col,oc,keep*smoothstep(.1,.45,mm)*(.97-.2*dis));
+  // pulses of light travelling out from the glowing strip: they ripple across the floor and make the grain flare as they pass
+  {vec2 lc=vec2(.5,.665);float wsum=0.;
+   for(int k=0;k<2;k++){float ph=fract(uT*.13+float(k)*.5);float rad=ph*.95;
+     float dd=length((pu-lc)*vec2(1.,2.3));float band=exp(-((dd-rad)*(dd-rad))/.0010)*pow(1.-ph,1.4)*smoothstep(.0,.08,ph);wsum+=band;}
+   wsum*=1.-smoothstep(.04,.3,M(pu))*.97;                // the light passes behind the product, not across it
+   col+=vec3(1.,.93,.72)*wsum*.2;                        // soft glow in the band
+   }
+  // the product itself stays whole: its own pixels, only the far edges are left to the dust
+  {float mC=smoothstep(.1,.45,M(pu))*(1.-dis*.85);vec3 oC=O(pu);oC=mix(oC,pal(dot(oC,vec3(.3,.59,.11))),.0);col=mix(col,oC,mC*.14);}
+  // darker sage grains along the shadow side, like settled dust
+  float sh=smoothstep(.45,.95,pu.x)*smoothstep(.5,.9,pu.y)*cm;
+  col=mix(col,vec3(.50,.47,.38),sh*.22);
+  // dust: soft round motes drifting slowly through the light, three depths, thick toward the edges and in the product's wake
+  for(int k=0;k<3;k++){float fk=float(k);float cs=cell*(2.6+1.7*fk);
+    vec2 gp=(fc+vec2(-uT*(10.+8.*fk),uT*(3.+2.*fk)))/cs;vec2 gid=floor(gp),gf=fract(gp);
+    float r0=h(gid+fk*17.);vec2 cp=.28+.44*vec2(h(gid+3.),h(gid+7.));
+    vec2 gc2=(gid+cp)*cs-vec2(-uT*(10.+8.*fk),uT*(3.+2.*fk));vec2 uvc=vec2(gc2.x/uRes.x,1.-gc2.y/uRes.y);
+    float oS=smoothstep(.08,.6,length((uvc-vec2(.5,.52+uOff))*vec2(asp,1.)*.8)),wake=smoothstep(.5,.85,uvc.x)*(1.-smoothstep(.3,.75,abs(uvc.y-.55-uOff)));
+    float nc=smoothstep(.38,.8,fbm3(uvc*vec2(3.2,2.2)+vec2(-uT*.05,uT*.02)+fk*4.));      // dust gathers in drifting clouds, not an even sprinkle
+    float near=smoothstep(.62,.14,length((uvc-vec2(.5,.55+uOff))*vec2(asp,1.)));
+    float present=step(r0,nc*(.55*wake+.5*near)+smoothstep(.1,.4,M(pu))*(.06+.4*dis));   // so it clusters around the product and trails off to the right
+    float rad=(.13+.17*h(gid+11.))*(1.-.12*fk);float dd=length(gf-cp);
+    float dt2=smoothstep(rad,rad*.4,dd)*(.6+.4*sin(uT*1.7+r0*40.));
+    vec3 mote=h(gid+13.)>.84?col*.64:col*1.32+vec3(.07,.06,.03);
+    col=mix(col,mote,present*dt2*.85);}
+  col+=(h(fc+uT*29.)-.5)*.008;
+  col*=1.-.4*smoothstep(.55,1.3,length((uv-.5)*vec2(1.05,1.)));
+  col=mix(uBg*.8,col,uIn);
+  gl_FragColor=vec4(col,1.);}`;
+const P3=prog(F3);
+const F4=`precision highp float;uniform vec2 uRes,uC;uniform float uT,uScr,uIn;uniform sampler2D uMax;
+float h(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+7.1;a*=.5;}return s;}
+void main(){
+  vec2 fc=gl_FragCoord.xy;vec2 uv=vec2(fc.x/uRes.x,1.-fc.y/uRes.y);float asp=uRes.x/uRes.y;
+  vec2 p=(uv-.5)*vec2(asp,1.);vec2 pm=uC-vec2(.49,.62);
+  vec2 cen=vec2(.05,.03)+pm*vec2(.07,.05);float R=.5*min(1.,asp/1.35);
+  vec2 d=p-cen;float r=length(d),rn=r/R;vec2 nd=d/(r+1e-4);
+  vec2 L=normalize(vec2(-.38+.4*sin(uScr*2.+uT*.1),-1.));
+  vec2 Bd=normalize(vec2(.62+.2*sin(uT*.07),-.8));
+  float tm=uT*.05;
+  // indigo field, brighter toward the right like the reference
+  vec3 col=mix(vec3(.01,.015,.09),vec3(.12,.13,.50),smoothstep(-.6,.9,p.x*.9+.2));
+  col*=1.-.5*smoothstep(.45,1.3,length(p*vec2(.75,1.)));
+  // wide soft god rays behind the orb
+  float ang=atan(d.y,d.x);vec2 cs=vec2(cos(ang),sin(ang));
+  float up=.5+.5*dot(nd,L);float outer=smoothstep(R*.92,R*1.08,r);
+  float sm=0.;
+  for(int k=0;k<8;k++){float fk=float(k);float rr=r*(1.-.09*fk+.06*h(fc+fk));
+    sm+=fbm(2.3*cs+vec2(rr*.9-uT*.16,tm*2.+rr*.6)+uScr*vec2(.6,.3));}
+  sm/=8.;
+  float lt=smoothstep(.34,.64,sm);
+  vec3 rcol=mix(vec3(.01,.04,.30),vec3(.36,.52,1.),pow(lt,1.3)*(.75+.45*up));
+  col=mix(col,rcol*(.8+.5*exp(-r*.9)),.95*outer);
+  float cell=max(2.,uRes.y/460.);
+  // glow hugging the rim, strongest on the lit side
+  float lw=smoothstep(-.4,.85,dot(nd,L));
+  col+=vec3(.35,.8,1.)*exp(-max(r-R,0.)*12.)*(.2+.8*lw)*.55*step(R*.97,r);
+  if(rn<1.75){
+    float z=sqrt(max(1.-rn*rn,0.));
+    vec2 q=d/R;
+    vec2 wq=q+.28*vec2(fbm(q*2.+tm),fbm(q*2.+5.-tm))-.14;
+    float den=fbm(wq*3.3+vec2(tm,-tm));
+    float vein=smoothstep(.45,.72,fbm(wq*2.4+vec2(-tm*1.5,tm)+9.));
+    vec2 tuv=q*.4688+.5+pm*.03*z;vec4 t=texture2D(uMax,clamp(tuv,.001,.999));
+    float tl=dot(t.rgb,vec3(.3,.59,.11));
+    float edge=smoothstep(1.06,.94,rn);
+    // smooth, blurred colour clouds under the grains
+    float band=smoothstep(.36,.76,fbm(wq*vec2(1.1,3.4)+vec2(tm*2.,3.)));
+    vec2 bq=(wq-vec2(-.30+.08*sin(tm*3.),.18))*vec2(1.,2.6);
+    float blob=exp(-dot(bq,bq)*4.2)*(.7+.6*fbm(wq*3.+tm*3.));
+    float wedge=pow(max(dot(nd,Bd),0.),5.)*smoothstep(1.,.1,rn);
+    float tealc=smoothstep(.4,.75,fbm(wq*1.6+vec2(tm*2.,-3.)));
+    vec3 body=mix(vec3(.012,.02,.11),vec3(.03,.10,.42),smoothstep(.25,.75,fbm(wq*1.5+3.)));
+    body=mix(body,vec3(.05,.34,.62),tealc*.55*(1.-band));
+    body=mix(body,vec3(.50,.52,1.),band*.8*smoothstep(-.3,.55,q.x));
+    body+=vec3(.80,.90,1.)*(blob*1.2+wedge*.5);
+    body*=.55+.6*z;
+    // no solid body: the orb is dark glass, all its colour and light comes from the grains themselves
+    col=mix(col,col*.3+vec3(.0,.008,.05),edge*.85);
+    float lum=clamp(blob*1.1+wedge*.5+band*.75*smoothstep(-.3,.55,q.x)+tealc*.25,0.,1.);
+    float inside=smoothstep(1.04,.92,rn);
+    float dust=smoothstep(.88,1.0,rn)*smoothstep(1.7,1.0,rn)*(.15+.85*vein)*(.4+.6*smoothstep(-.3,.8,dot(nd,vec2(0.,1.))*.6+.4));
+    for(int k=0;k<3;k++){float fk=float(k);float cs=cell*(1.+.7*fk);
+      vec2 fr0=fk>.5?vec2(.8*fc.x+.6*fc.y,-.6*fc.x+.8*fc.y)+37.*fk:(fk>.1?vec2(.6*fc.x-.8*fc.y,.8*fc.x+.6*fc.y)+11.:fc);
+      vec2 gp=fr0/cs,gid=floor(gp),gf=fract(gp)-.5;
+      float a=h(gid+5.+fk)*6.283;vec2 gr=vec2(cos(a)*gf.x+sin(a)*gf.y,-sin(a)*gf.x+cos(a)*gf.y);
+      gr-=(vec2(h(gid+3.),h(gid+7.))-.5)*.6;
+      float sx=.18+.3*h(gid+11.),sy=sx*(.45+.5*h(gid+13.));
+      float shp=smoothstep(1.,.5,length(gr/vec2(sx,sy)));
+      float prob=inside*(.07+.22*smoothstep(.3,.7,den)+.5*smoothstep(.45,.8,den)*.5+.35*vein*den+1.05*smoothstep(.2,.75,lum)+smoothstep(.62,.92,tl)*t.a*.5)+dust*.7;
+      float on=step(h(gid+9.+fk),prob)*shp;
+      vec3 gc=mix(vec3(.40,.95,1.),body*2.8+.08,smoothstep(.15,.6,lum));
+      gc=mix(gc,vec3(.86,.92,1.),h(gid+17.)*.3);gc=mix(gc,vec3(.74,.62,1.),band*.75*smoothstep(-.3,.45,q.x));
+      gc*=(.65+.45*max(dot(nd,L),0.)+.25*z)*(.75+.5*h(gid+19.));
+      col=mix(col,gc,on*(.8-.15*fk));}
+    // soft rim: broad blurred band with aurora tint, dust leaves it
+    float fr=pow(1.-z,2.0),fr2=pow(1.-z,6.);
+    vec2 ac2=vec2(cos(ang),sin(ang));
+    float au=fbm(ac2*2.+vec2(tm*5.,rn*2.));
+    vec3 ac=mix(vec3(.04,.55,1.),vec3(.55,.36,1.),smoothstep(.3,.7,au));
+    ac=mix(ac,vec3(.30,1.,.92),smoothstep(.5,.85,fbm(ac2*3.+vec2(tm*7.+3.,rn)))*.6);
+    float aoff=exp(-pow((rn-1.)/.07,2.))*(.4+.9*au)*(.35+.65*smoothstep(-.6,.8,dot(nd,L)));
+    float lw2=.25+.75*lw;
+    col+=ac*((fr*1.1+fr2*.7)*edge*lw2*(.5+au)+aoff*.9);
+    col+=vec3(.7,.95,1.)*fr2*edge*lw*.5;
+  }
+  col=1.-exp(-col*1.45);
+  col+=(h(fc+uT*29.)-.5)*.01;
+  col=mix(vec3(.01,.02,.09),col,uIn);
+  gl_FragColor=vec4(col,1.);}`;
+const P4=prog(F4);
+const P1=prog(F1),P2=prog(F2);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+function bind(p){gl.useProgram(p);const l=gl.getAttribLocation(p,'p');gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0)}
+// the stage is drawn small, once per frame; the blur then only has to read it
+const SW=768;let SHh=540;const tex=gl.createTexture(),fbo=gl.createFramebuffer();
+function fitTex(){SHh=Math.round(SW*innerHeight/innerWidth);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,SW,SHh,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);gl.bindFramebuffer(gl.FRAMEBUFFER,null)}
+let sc=Math.min(1.25,devicePixelRatio||1);
+function fit(){cv.width=Math.round(innerWidth*sc);cv.height=Math.round(innerHeight*sc);fitTex()}
+addEventListener('resize',fit);fit();
+const CH=[['Everything','Your ring, fully unlocked'],['Heart','Nightly rhythm, every morning'],['Cycle','Ovulation, confirmed'],['Training','Workouts that follow recovery']];
+const tEl=document.getElementById('t'),sEl=document.getElementById('sub'),spEl=document.getElementById('sp');let chI=0,ps=0;
+function setCh(i){if(i===chI)return;chI=i;tEl.classList.add('out');sEl.classList.add('out');setTimeout(()=>{tEl.textContent=CH[i][0];sEl.textContent=CH[i][1];tEl.classList.remove('out');sEl.classList.remove('out')},420)}
+const objTex=gl.createTexture();let objBg=[.8,.77,.63],objA=1.78,objT=-1;gl.bindTexture(gl.TEXTURE_2D,objTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([200,190,150,255]));
+(function(){const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);
+  const d=x.getImageData(4,4,24,24).data;let r=0,g=0,b=0,n=d.length/4;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2]}objBg=[r/n/255,g/n/255,b/n/255];objA=im.naturalWidth/im.naturalHeight;objT=performance.now();
+  gl.bindTexture(gl.TEXTURE_2D,objTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE)};
+  im.src=new URLSearchParams(location.search).get('obj')||'img/objects/ring-wide.jpg'})();
+const maxTex=gl.createTexture();let maxT=-1;gl.bindTexture(gl.TEXTURE_2D,maxTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([34,70,189,255]));
+function buildMax(){const S=1024,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');const R=480,cx=S/2,cy=S/2;
+  x.save();x.beginPath();x.arc(cx,cy,R,0,7);x.clip();
+  const g=x.createRadialGradient(cx-R*.25,cy-R*.35,R*.1,cx,cy,R);g.addColorStop(0,'#4b6fe0');g.addColorStop(.6,'#2246bd');g.addColorStop(1,'#16308e');x.fillStyle=g;x.fillRect(0,0,S,S);
+  const im=new Image();im.onload=()=>{x.save();x.beginPath();x.arc(cx,cy,R,0,7);x.clip();x.globalCompositeOperation='screen';x.globalAlpha=.8;const k=R*2/(S*.686);x.drawImage(im,cx-S*k/2,cy-S*k/2,S*k,S*k);x.restore();finish()};im.onerror=finish;im.src='img/maxglass.png';
+  function finish(){x.save();x.beginPath();x.arc(cx,cy,R,0,7);x.clip();x.globalCompositeOperation='source-over';x.globalAlpha=1;
+    x.font='italic 400 330px "Instrument Serif",Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='rgba(255,255,255,.95)';x.shadowBlur=26;x.fillStyle='#fff';x.fillText('Max',cx,cy+14);x.shadowBlur=60;x.fillText('Max',cx,cy+14);x.restore();x.restore();
+    gl.bindTexture(gl.TEXTURE_2D,maxTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);maxT=performance.now()}}
+(document.fonts&&document.fonts.load?document.fonts.load('italic 300px "Instrument Serif"'):Promise.resolve()).then(buildMax,buildMax);
+const imgTex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,imgTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([40,40,60,255]));
+(function(){const names=['afib','cycle','resp','healthex','lesmills','tesla','migraine','jade','ux'];const cv2=document.createElement('canvas');cv2.width=cv2.height=2048;const x=cv2.getContext('2d');x.fillStyle='#222';x.fillRect(0,0,2048,2048);let left=names.length;const cell=2048/3;
+  names.forEach((n,i)=>{const im=new Image();im.onload=im.onerror=()=>{if(im.naturalWidth){const r=Math.max(cell/im.naturalWidth,cell/im.naturalHeight),w=im.naturalWidth*r,h=im.naturalHeight*r,cx=(i%3)*cell,cy=Math.floor(i/3)*cell;x.save();x.beginPath();x.rect(cx,cy,cell,cell);x.clip();x.drawImage(im,cx+(cell-w)/2,cy+(cell-h)/2,w,h);x.restore()}
+    if(--left===0){gl.bindTexture(gl.TEXTURE_2D,imgTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv2);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE)}};im.src='img/fg/'+n+'.jpg'})})();
+const LIQUID=1;   // set to 0 to turn the liquid skin off
+let cx=.49,cy=.62,cvx=0,cvy=0;   // vanishing point, springs toward the pointer
+let VER=Math.min(3,+(localStorage.getItem('agver')||1));
+let wkx=.5,wky=.5,wvx=0,wvy=0,ptx=.5,pty=.5;
+let px=0,py=0,tx=0,ty=0,T=0,last=performance.now(),ema=.016,nf=0;
+document.documentElement.addEventListener('pointerleave',()=>{ptx=.5;pty=.5;tx=0;ty=0});
+addEventListener('blur',()=>{ptx=.5;pty=.5;tx=0;ty=0});
+addEventListener('pointermove',e=>{tx=(e.clientX/innerWidth-.5)*2;ty=-(e.clientY/innerHeight-.5)*2;ptx=e.clientX/innerWidth;pty=e.clientY/innerHeight});
+const fixedT=new URLSearchParams(location.search).get('t');
+const u1=n=>gl.getUniformLocation(P1,n),u2=n=>gl.getUniformLocation(P2,n);
+window.__fc=0;function frame(now){window.__fc++;const raw=(now-last)/1000,dt=Math.min(raw,.05);last=now;T+=dt;
+  px+=(tx-px)*(1-Math.pow(.02,dt));py+=(ty-py)*(1-Math.pow(.02,dt));
+  if(raw<.12&&++nf>40){ema=ema*.9+raw*.1;if(ema>.026&&sc>.6){sc-=.12;fit();ema=.016;nf=0}}
+  const pr=Math.min(1,scrollY/Math.max(1,spEl.offsetHeight));ps+=(pr-ps)*(1-Math.pow(.002,dt));setCh(Math.min(CH.length-1,Math.floor(ps*CH.length*1.02)));
+  {const nx=wkx+(ptx-wkx)*(1-Math.pow(.0005,dt)),ny=wky+(pty-wky)*(1-Math.pow(.0005,dt));
+   wvx=wvx*Math.pow(.02,dt)+(nx-wkx)*5*(1-Math.pow(.02,dt));wvy=wvy*Math.pow(.02,dt)+(ny-wky)*5*(1-Math.pow(.02,dt));wkx=nx;wky=ny;
+   const m=Math.hypot(wvx,wvy);if(m>.12){wvx*=.12/m;wvy*=.12/m}}
+  {const FOLLOW=.26,txc=.49+(ptx-.5)*FOLLOW,tyc=.62+(pty-.5)*FOLLOW,k=22,c=7.5;
+   cvx+=((txc-cx)*k-cvx*c)*dt;cvy+=((tyc-cy)*k-cvy*c)*dt;cx+=cvx*dt;cy+=cvy*dt;}
+  const t=fixedT?+fixedT:T;
+  if(VER===2){gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);bind(P3);
+    gl.uniform2f(gl.getUniformLocation(P3,'uRes'),cv.width,cv.height);gl.uniform2f(gl.getUniformLocation(P3,'uC'),cx,cy);gl.uniform1f(gl.getUniformLocation(P3,'uT'),t);gl.uniform1f(gl.getUniformLocation(P3,'uScr'),ps);gl.uniform1f(gl.getUniformLocation(P3,'uOff'),window.OBJOFF||0);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,objTex);gl.uniform1i(gl.getUniformLocation(P3,'uObj'),0);gl.uniform3f(gl.getUniformLocation(P3,'uBg'),objBg[0],objBg[1],objBg[2]);gl.uniform1f(gl.getUniformLocation(P3,'uImgA'),objA);gl.uniform1f(gl.getUniformLocation(P3,'uIn'),objT<0?0:Math.min(1,(performance.now()-objT)/1600));
+    gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(frame);return}
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.viewport(0,0,SW,SHh);bind(P1);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,imgTex);gl.uniform1i(u1('uImg'),1);
+  gl.uniform1f(u1('uScr'),ps*(+(new URLSearchParams(location.search).get('x')||1)));gl.uniform2f(u1('uRes'),SW,SHh);gl.uniform2f(u1('uPtr'),px,py);gl.uniform2f(u1('uC'),cx,cy);gl.uniform1f(u1('uT'),t);gl.drawArrays(gl.TRIANGLES,0,3);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);bind(P2);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(u2('uS'),0);
+  gl.uniform1f(u2('uMono'),VER===3?1:0);{const R=window.RING||[.66,.70,.085];gl.uniform3f(u2('uRing'),R[0],R[1],R[2])}gl.uniform1f(u2('uScr'),ps);gl.uniform2f(u2('uC'),cx,cy);gl.uniform1f(u2('uLiq'),LIQUID);gl.uniform2f(u2('uWake'),wkx,wky);gl.uniform2f(u2('uWV'),wvx,wvy);gl.uniform2f(u2('uRes'),cv.width,cv.height);gl.uniform2f(u2('uPtr'),px,py);gl.uniform1f(u2('uT'),t);gl.drawArrays(gl.TRIANGLES,0,3);
+  requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+function setVer(v){VER=v;if(v===2&&sc>1){sc=1;fit()}if((v===1||v===3)&&sc<1.1&&(devicePixelRatio||1)>1.1){sc=Math.min(1.25,devicePixelRatio||1);fit()}try{localStorage.setItem('agver',v)}catch(e){}document.querySelectorAll('#tg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===v))}
+document.querySelectorAll('#tg button').forEach(b=>b.onclick=()=>setVer(+b.dataset.v));
+addEventListener('keydown',e=>{if(e.key==='1')setVer(1);if(e.key==='2')setVer(2);if(e.key==='3')setVer(3);});
+setVer(VER);
+</script>
+</body>
+</html>

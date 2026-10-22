@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultrahuman Max — Your ring, fully unlocked</title>
+<meta name="description" content="Ultrahuman Max unlocks everything your ring can do: nine PowerPlugs, Jade Pro and UltrahumanX coverage in one membership.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--wmu:url(img/uh-wordmark.svg);
+  --sans:"Geist",system-ui,-apple-system,"Helvetica Neue",sans-serif;--mono:"Geist Mono",ui-monospace,monospace;
+  --pad:clamp(16px,1.7vw,26px);--ease:cubic-bezier(.2,.8,.2,1);
+  --mute:rgba(255,255,255,.68);--line:rgba(255,255,255,.16);
+  --fs-h:clamp(34px,4.5vw,66px);--fs-b:15px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;background:#000;overflow-x:clip}
+body{background:#000;color:#fff;font-family:var(--sans);font-size:var(--fs-b);line-height:1.4;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;background:#04060f}
+main{position:relative;z-index:1}
+.mono{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+
+/* top bar */
+header.nav{position:fixed;top:0;left:0;right:0;z-index:80;height:64px;background:rgba(10,10,12,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid rgba(255,255,255,.07);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 clamp(20px,7vw,112px)}
+.nav .logo{display:flex;align-items:center;width:40px;height:40px;color:#fff}.nav .logo svg{width:32px;height:24px}
+.nav .links{display:flex;gap:19px;font-size:13px;letter-spacing:-.02em;line-height:24px}
+.nav .links a{width:110px;text-align:center;color:#fff;transition:opacity .25s}.nav .links a:hover{opacity:.55}
+.nav .links a.on{text-transform:uppercase;background:linear-gradient(158deg,#c9a45c 14%,#e6cf9a 32%,#fff1c9 48%,#e0c07a 64%,#b8975a 82%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav .r{display:flex;justify-content:flex-end}
+.nav .navbtn{height:43px;padding:0 24px;border-radius:50px;background:#fff;border:1px solid rgba(255,255,255,.4);display:inline-flex;align-items:center;font-size:13px;font-weight:500;letter-spacing:-.02em;color:#000;transition:background .25s,color .25s}
+.nav .navbtn:hover{background:transparent;color:#fff}
+.pillb{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 18px;border-radius:999px;background:#fff;color:#000;font-weight:500;font-size:14px;transition:transform .25s var(--ease)}
+.pillb:hover{transform:scale(1.04)}
+/* hero: the PowerPlugs drift in the light */
+.hs{position:relative;height:210svh}
+.hp{position:sticky;top:0;height:100svh;overflow:hidden;display:grid;place-items:center;text-align:center}
+#rib{position:absolute;inset:0;width:100%;height:100%}
+.hb{position:absolute;left:0;right:0;bottom:clamp(90px,14svh,130px);display:flex;justify-content:center;align-items:center;gap:clamp(26px,5vw,70px);padding:0 var(--pad);font-size:14px;line-height:1.45;flex-wrap:wrap;text-align:left}
+.hb p{width:min(260px,70vw);color:#fff}
+.scroll{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,.6);display:flex;flex-direction:column;align-items:center;gap:8px}
+.scroll::after{content:"";width:1px;height:34px;background:linear-gradient(rgba(255,255,255,.7),transparent);animation:sc 2s var(--ease) infinite}
+@keyframes sc{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* about: a sentence that lights up as you read it */
+.ab{position:relative;height:300svh}
+.abp{position:sticky;top:0;height:100svh;display:grid;align-items:center;justify-items:center;padding:0 var(--pad);text-align:center}
+.abp p{font-size:clamp(26px,3.7vw,60px);font-weight:400;letter-spacing:-.045em;line-height:1.08;max-width:24ch;margin:0 auto}
+.abp p .w{opacity:.2;filter:blur(7px);transition:opacity .5s var(--ease),filter .5s var(--ease)}
+.abp p .w.on{opacity:1;filter:none}
+.abp p .ot{display:inline-block;width:.78em;height:.78em;border-radius:50%;background:var(--im) center/cover;vertical-align:-.08em;margin:0 .06em;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 8px 30px -8px rgba(0,0,0,.6);opacity:.2;transform:scale(.6);transition:opacity .6s var(--ease),transform .8s var(--ease)}
+.abp p .ot.on{opacity:1;transform:none}
+.abp .sm{position:absolute;left:var(--pad);bottom:clamp(80px,12svh,120px);color:var(--mute);font-size:13px}
+
+/* the nine, one scene each, driven by scroll */
+.pg{position:relative}
+.pgp{position:sticky;top:0;height:100svh;overflow:hidden}
+.scn{position:absolute;inset:0;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--pad);padding:calc(58px + 4svh) var(--pad) 12svh;align-items:center;pointer-events:none}
+.scn.on{pointer-events:auto}
+.scn .sl{grid-column:1/7;position:relative}
+.scn .sv{grid-column:7/13;position:relative;display:grid;place-items:center}
+.scn .sl>*,.scn .cv{opacity:0;transform:translateY(28px);filter:blur(12px);transition:opacity .8s var(--ease),transform .9s var(--ease),filter .8s var(--ease)}
+.scn .sl>*:nth-child(2){transition-delay:.05s}.scn .sl>*:nth-child(3){transition-delay:.1s}.scn .sl>*:nth-child(4){transition-delay:.15s}.scn .sl>*:nth-child(5){transition-delay:.2s}
+.scn .cv{transition-delay:.12s}
+.scn.on .sl>*,.scn.on .cv{opacity:1;transform:none;filter:none}
+.scn.out .sl>*,.scn.out .cv{transform:translateY(-22px)}
+.scn .no{display:flex;align-items:center;gap:12px;color:var(--mute);margin-bottom:22px}
+.scn .no b{font-weight:400;color:#fff}
+.scn .no i{flex:0 0 46px;height:1px;background:var(--line)}
+.scn h3{font-size:clamp(40px,6vw,96px);font-weight:400;letter-spacing:-.058em;line-height:.95}
+.scn .tg{margin-top:clamp(16px,2.6svh,26px);font-size:clamp(18px,1.9vw,26px);letter-spacing:-.03em;line-height:1.2;max-width:22ch}
+.scn .bd{margin-top:clamp(14px,2.2svh,22px);color:var(--mute);max-width:46ch;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.scn .lk{display:inline-block;margin-top:22px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.5)}
+.cv{position:relative;width:min(100%,640px);aspect-ratio:4/3.1;display:grid;place-items:center}
+.cv .gl{position:absolute;inset:6% 4%;border-radius:28px;background:radial-gradient(80% 90% at 50% 30%,var(--tint),transparent 72%);opacity:.5;filter:blur(40px)}
+.cv img{position:relative;width:78%;aspect-ratio:4/3.3;object-fit:cover;border-radius:clamp(12px,1.4vw,20px);box-shadow:0 50px 100px -30px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.12)}
+.cv .wd{position:absolute;right:-2%;bottom:3%;width:min(46%,250px);box-shadow:0 34px 80px -20px rgba(0,0,0,.75)}
+.rl{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:3;display:grid;gap:5px;justify-items:end;font-size:12px}
+.rl a{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.4);transition:color .3s;white-space:nowrap}
+.rl a i{width:14px;height:1.5px;background:currentColor;transition:width .4s var(--ease)}
+.rl a.on{color:#fff}.rl a.on i{width:34px}
+.rl a:hover{color:#fff}
+.pgb{position:absolute;left:var(--pad);right:var(--pad);bottom:84px;height:2px;background:rgba(255,255,255,.14);border-radius:2px;z-index:3}
+.pgb i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p,0)*100%);background:#fff;border-radius:2px}
+
+/* at a glance */
+.gz{position:relative;background:#070708;padding:clamp(90px,12vw,170px) clamp(20px,7vw,112px)}
+.pl2{display:flex;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap;color:var(--mute)}.pl2 b{font-weight:400;color:#fff;font-size:20px;letter-spacing:-.03em}.pl2 .chip{padding:5px 9px;border-radius:6px;background:rgba(159,210,255,.14);color:#bcdcff}
+.gz h3,.pz h3{font-size:var(--fs-h);font-weight:400;letter-spacing:-.05em;line-height:1.02;max-width:13ch}
+.gz .lead{margin-top:18px;color:var(--mute);max-width:44ch}
+.gb{margin-top:clamp(44px,6vw,90px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--pad);align-items:start}
+.gc{display:grid;gap:var(--pad);min-width:0}
+.gc:nth-child(2){margin-top:clamp(40px,7vw,110px)}.gc:nth-child(3){margin-top:clamp(14px,3vw,46px)}
+.gk{min-width:0;position:relative;border-radius:22px;padding:56px 20px 22px;background:#101012;border:1px solid rgba(255,255,255,.1);display:grid;justify-items:center;gap:18px;transition:transform .7s var(--ease),background .4s}
+.gk:hover{transform:translateY(-6px);background:#151518}
+.gk .tg2{position:absolute;left:20px;top:20px;color:var(--mute)}
+.gk .ck{position:absolute;right:18px;top:16px;width:20px;height:20px;border-radius:50%;background:#36d26a;display:grid;place-items:center}
+.gk .ck svg{width:10px;height:10px;stroke:#04210f;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.gk .cap{justify-self:start;color:var(--mute);font-size:13px;margin-top:2px}
+.gk .cap b{display:block;color:#fff;font-weight:400;font-size:16px}
+.wd{width:min(100%,270px);border-radius:20px;padding:18px;background:#fff;border:1px solid #ececf0;box-shadow:0 20px 50px -26px rgba(0,0,0,.25);font-size:12px;line-height:1.35;letter-spacing:-.01em}
+.wd.dark{background:#0d0e11;color:#fff;border-color:transparent;box-shadow:0 24px 60px -24px rgba(0,0,0,.6)}
+.wd .m{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#8d93a1}
+.wd .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.wd h4{font-weight:400;font-size:13px;letter-spacing:-.02em}
+.wd .big{font-size:44px;letter-spacing:-.06em;line-height:1}
+.wd .big small{font-size:13px;letter-spacing:0;color:#8d93a1;margin-left:3px}
+.wd svg{display:block;width:100%;height:auto}
+.wd.dark svg .ln{stroke:#fff}
+.wd .pill{display:inline-block;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.1);font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase}
+.wd.light .pill{background:#f0f0f3;color:#555}
+.wd .st{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:14px;text-align:center}
+.wd .st b{display:block;font-weight:500;font-size:12px}
+.wd .st span{font-family:var(--mono);font-size:8px;letter-spacing:.06em;color:#8d93a1;text-transform:uppercase}
+.wd.jd{background:linear-gradient(165deg,#3f8266,#254f3e);color:#fff;padding:12px}
+.wd .xc{width:100%;aspect-ratio:1.586;border-radius:14px;background:linear-gradient(135deg,#8b9098,#41444a 40%,#1b1c20);transform:rotate(-12deg);position:relative;box-shadow:0 24px 40px -14px rgba(0,0,0,.6)}
+.wd .xc::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.22) 48%,transparent 62%)}
+.wd .xc .wm{position:absolute;left:8%;top:12%;width:34%;color:rgba(255,255,255,.88)}
+.wd .xc i{position:absolute;right:8%;bottom:12%;width:20%;aspect-ratio:1;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);display:grid;place-items:center;color:#fff;font-style:normal;font-size:12px}
+
+/* price */
+.pz{position:relative;background:radial-gradient(60% 46% at 50% 36%,rgba(34,70,189,.42),transparent 72%),#070708;min-height:100svh;display:grid;align-content:center;justify-items:center;text-align:center;padding:clamp(90px,12vw,160px) var(--pad)}
+.pz .kk{color:rgba(255,255,255,.8);margin-bottom:6px}
+.pz .big{font-size:clamp(110px,26vw,430px);font-weight:400;letter-spacing:-.075em;line-height:.86;text-shadow:0 4px 90px rgba(0,5,40,.5)}
+.pz .big sub{font-size:.2em;letter-spacing:-.03em;vertical-align:baseline;margin-left:.1em;opacity:.8}
+.pz .vs{margin-top:clamp(18px,3svh,30px);font-size:clamp(16px,1.6vw,22px);color:rgba(255,255,255,.88)}
+.pz .vs s{opacity:.7;text-decoration-thickness:1.5px}
+.pz .bars{width:min(560px,86vw);margin:clamp(26px,4svh,44px) auto 0;display:grid;gap:12px}
+.bar{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;font-size:13px;color:rgba(255,255,255,.85)}
+.bar .tr{height:8px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden}
+.bar .tr i{display:block;height:100%;width:var(--w);border-radius:5px;background:#fff;transform:scaleX(0);transform-origin:left;transition:transform 1.5s var(--ease) .2s}
+.bar.me .tr i{background:#9fd2ff}
+.in .bar .tr i{transform:scaleX(1)}
+.pz .pillb{margin-top:clamp(26px,4svh,40px);height:48px;padding:0 28px;font-size:15px}
+.pz small{display:block;margin-top:16px;color:rgba(255,255,255,.7);font-size:13px}
+
+/* faq */
+.qz{position:relative;background:#070708;padding:clamp(80px,12vw,170px) var(--pad);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--pad);row-gap:40px}
+.qz h3{grid-column:1/6;font-size:var(--fs-h);font-weight:400;letter-spacing:-.05em;line-height:1.02;position:sticky;top:110px;align-self:start}
+.qa{grid-column:7/13;border-top:1px solid var(--line)}
+.qa details{border-bottom:1px solid var(--line)}
+.qa summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:20px;align-items:center;padding:24px 0;font-size:clamp(18px,1.7vw,24px);letter-spacing:-.03em}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary i{flex:0 0 22px;height:22px;position:relative}
+.qa summary i::before,.qa summary i::after{content:"";position:absolute;left:3px;right:3px;top:50%;height:1.5px;background:#fff;transition:transform .4s var(--ease)}
+.qa summary i::after{transform:rotate(90deg)}
+.qa details[open] summary i::after{transform:rotate(0)}
+.qa details p{color:var(--mute);padding:0 40px 26px 0;max-width:54ch}
+
+/* outro */
+.fin{position:relative;min-height:100svh;display:grid;place-items:center;text-align:center;padding:120px var(--pad) 140px;overflow:hidden}
+.fin .ob{animation:fl 9s ease-in-out infinite}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.fin h2{font-size:clamp(54px,9.4vw,150px);font-weight:400;letter-spacing:-.058em;line-height:.93;text-shadow:0 2px 60px rgba(0,5,40,.45)}
+.fin p{margin-top:20px;font-size:clamp(17px,1.7vw,22px);color:#fff;text-shadow:0 1px 24px rgba(0,0,10,.55)}
+.fin .pillb{margin-top:34px;height:48px;padding:0 28px;font-size:15px}
+.fin small{display:block;margin-top:18px;color:rgba(255,255,255,.85);font-size:13px;text-shadow:0 1px 18px rgba(0,0,10,.6)}
+.fin>div:last-child{position:relative;z-index:2}
+.wm{display:block;aspect-ratio:1280/118;background:currentColor;-webkit-mask:var(--wmu) center/contain no-repeat;mask:var(--wmu) center/contain no-repeat}
+.uf{background:#070708;color:rgba(255,255,255,.62);padding:0 clamp(20px,5vw,80px);overflow:hidden}
+.uf .cols{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid rgba(255,255,255,.12)}
+.uf .col{padding:40px 28px 36px;border-left:1px solid rgba(255,255,255,.12)}
+.uf .col:first-child{border-left:0;padding-left:0}
+.uf h4{font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin:0 0 18px}
+.uf .grp+.grp{margin-top:34px;padding-top:6px;border-top:1px solid rgba(255,255,255,.12)}
+.uf ul{list-style:none}
+.uf li{margin:0 0 12px;font-size:var(--fs-sm);line-height:1.3}
+.uf a:hover{color:#fff}
+.uf .nw{margin-left:8px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.12);font-size:9px;letter-spacing:.06em;color:#ccc;vertical-align:1px}
+.uf .hsa{display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:8px 12px;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:10px;font-weight:600;line-height:1.1;color:#ddd}
+.uf .sub{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,.12)}
+.uf .sub>div{padding:30px 28px 34px;border-left:1px solid rgba(255,255,255,.12)}
+.uf .sub>div:first-child{border-left:0;padding-left:0}
+.uf .sub p{font-size:var(--fs-sm);line-height:1.6}
+.uf .soc{display:flex;gap:26px;margin-top:2px}
+.uf .soc svg{width:16px;height:16px;fill:#aaa}
+.uf .bdg{display:flex;gap:8px;flex-wrap:wrap}
+.uf .bdg a{display:block;padding:7px 14px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:#111;color:#fff;font-size:12px;font-weight:600;line-height:1.1}
+.uf .bdg a small{display:block;font-size:7px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:#aaa;margin-bottom:2px}
+.uf .copy{padding:30px 0;font-size:11px;color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.12)}
+.uf .fw{color:rgba(255,255,255,.06);margin:0 calc(-1*clamp(20px,5vw,80px));width:calc(100% + 2*clamp(20px,5vw,80px));padding:34px clamp(20px,5vw,80px) 40px}
+.uf .fw .wm{width:100%}
+.rv{opacity:0;transform:translateY(34px);filter:blur(12px);transition:opacity 1.1s var(--ease),transform 1.2s var(--ease),filter 1.1s var(--ease)}
+.rv.in{opacity:1;transform:none;filter:none}
+@media(min-width:901px){.scn{padding-right:calc(var(--pad) + clamp(120px,14vw,200px))}}
+@media(max-width:900px){
+  .uf .cols{grid-template-columns:1fr 1fr}.uf .sub{grid-template-columns:1fr}.uf .col,.uf .sub>div{padding-left:0;border-left:0}
+  .nav .links{display:none}.nav{grid-template-columns:1fr auto}
+  .scn{grid-template-columns:1fr;align-content:center;row-gap:28px;padding-bottom:16svh}.scn .sl,.scn .sv{grid-column:1}.scn .sv{order:-1}.cv{width:min(86%,420px)}.cv .wd{width:46%}.scn .bd{-webkit-line-clamp:4}.rl{display:none}
+  .gb{grid-template-columns:1fr}.gc:nth-child(n){margin-top:0}
+  .qz{grid-template-columns:1fr}.qz h3,.qa{grid-column:1;position:static}
+}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;filter:none;transition:none}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<header class="nav">
+  <a class="logo" href="#top" aria-label="Ultrahuman"><svg viewBox="0 0 32 24" aria-hidden="true"><path fill="currentColor" d="M28.58 0.23V9.35H23.47L32 17.02L25.8 23.77L16 14.94L6.19 23.77L0 17.02L8.53 9.35H3.4V0.23Z"/></svg></a>
+  <nav class="links" aria-label="Sections"><a href="#top" class="on" data-s="top">Max</a><a href="#glance" data-s="glance">Included</a><a href="#plugs" data-s="plugs">In detail</a><a href="#faq" data-s="faq">Good to know</a></nav>
+  <div class="r"><a class="navbtn" href="#download">Download the app</a></div>
+</header>
+
+<main>
+<section class="hs" id="top" data-look="hero" data-name="Overview" aria-label="Ultrahuman Max">
+  <div class="hp" id="hp"><canvas id="rib" aria-hidden="true"></canvas>
+    <div class="hb"><p>Nine PowerPlugs, Jade Pro and UltrahumanX coverage, from $9.99 a month.</p><a class="pillb" href="#download">Download the app</a></div>
+    <div class="scroll">Scroll</div>
+  </div>
+</section>
+
+<section class="ab" id="about" data-look="deep" data-name="About Max" aria-label="About Max">
+  <div class="abp"><p id="abt"></p></div>
+</section>
+
+<section class="gz" id="glance" data-look="deep" data-name="At a glance">
+  <h3 class="rv">All nine, always on.</h3>
+  <p class="lead rv">Every premium PowerPlug, Jade Pro and UltrahumanX coverage, from a single membership.</p>
+  <div class="pl2 rv">Starting at <b>$9.99/mo</b><span class="chip mono">Up to 81% savings</span></div>
+  <div class="gb" id="gb"></div>
+</section>
+
+<section class="pg" id="plugs" data-look="plug" data-name="The nine" aria-label="The nine PowerPlugs">
+  <div class="pgp" id="pgp"><div id="scns"></div><nav class="rl" id="rl" aria-label="PowerPlugs"></nav><div class="pgb" id="pgb"><i></i></div></div>
+</section>
+
+
+<section class="pz" id="price" data-look="finale" data-name="Pricing">
+  <span class="kk mono rv">Starting at</span>
+  <div class="big rv"><span id="pn">$9.99</span><sub>/mo</sub></div>
+  <p class="vs rv">Bought one by one, they'd come to <s>$42.92</s> a month.</p>
+  <div class="bars rv" id="bars">
+    <div class="bar"><span>Separately</span><div class="tr"><i style="--w:100%"></i></div><b>$42.92</b></div>
+    <div class="bar me"><span>Max</span><div class="tr"><i style="--w:23.3%"></i></div><b>$9.99</b></div>
+  </div>
+  <a class="pillb rv" href="#download">Get Max</a>
+  <small class="rv">Or $99.99 a year, against $515.04 separately · Up to 81% savings · USD</small>
+</section>
+
+
+<section class="fin" id="download" data-look="finale" data-name="Download">
+  <div id="fob"></div>
+  <div><h2 class="rv">Switch on Max.</h2><p class="rv">Max lives in the Ultrahuman app.</p><a class="pillb rv" href="#">Download the app</a><small class="rv">Starting at $9.99/mo · Prices in USD</small></div>
+</section>
+<section class="qz" id="faq" data-look="solid" data-name="Good to know">
+  <h3 class="rv">Good to know</h3>
+  <div class="qa rv" id="qa"></div>
+</section>
+<footer class="uf">
+  <div class="cols">
+    <div class="col">
+      <div class="grp"><h4>Smart rings</h4><ul><li><a href="#">Ultrahuman Ring PRO</a><span class="nw mono">New</span></li><li><a href="#">Ultrahuman Ring AIR</a></li><li><a href="#">Diesel Ultrahuman Ring</a></li><li><a href="#">Ultrahuman Ring Rare</a></li></ul></div>
+      <div class="grp"><h4>Health monitoring</h4><ul><li><a href="#">Ultrahuman M1 CGM</a></li><li><a href="#">Ultrahuman Home</a></li><li><a href="#">Ultrahuman Blood Vision</a></li><li><a href="#">Powerplugs</a></li><li><a href="#">Women’s Health</a></li><li><a href="#">Ultrahuman Vision Dashboard</a></li></ul></div>
+    </div>
+    <div class="col"><h4>Resources</h4><ul><li><a href="#">OGDb - Open Glucose Database</a></li><li><a href="#">Ultrahuman Blog</a></li><li><a href="#">Special Pricing - Military, Student &amp; More</a></li><li><a href="#">HSA/FSA</a></li><li><a href="#">Science</a></li><li><a href="#">Ultra Work</a></li><li><a href="#">Ultrahuman X Clue</a></li><li><a href="#">3D Print Ring Sizes</a></li><li><a href="#">Blood Vision Cloud</a></li><li><a href="#">Ring Sizing</a></li><li><a href="#">Annual Return</a></li></ul></div>
+    <div class="col">
+      <div class="grp"><h4>Company</h4><ul><li><a href="#">About Us</a></li><li><a href="#">Press &amp; News</a></li><li><a href="#">Brand Kit</a></li><li><a href="#">Careers</a></li></ul></div>
+      <div class="grp"><h4>Business</h4><ul><li><a href="#">Partnerships</a></li><li><a href="#">For Creators</a></li></ul></div>
+    </div>
+    <div class="col"><h4>Legal</h4><ul><li><a href="#">R1 Terms of Sale</a></li><li><a href="#">M1 Terms of Sale</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Use</a></li></ul>
+      <span class="hsa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#666" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span>HSA/FSA<br><b style="font-weight:400">Eligible</b></span></span></div>
+  </div>
+  <div class="sub">
+    <div><h4>Contact</h4><p>support@ultrahuman.com<br>1800-102-8693</p></div>
+    <div><h4>Follow us</h4><div class="soc">
+      <svg viewBox="0 0 24 24" aria-label="X"><path d="M18.2 2h3.1l-6.8 7.7L22.5 22h-6.3l-4.9-6.4L5.7 22H2.6l7.3-8.3L2 2h6.4l4.4 5.9L18.2 2z"/></svg>
+      <svg viewBox="0 0 24 24" aria-label="LinkedIn"><path d="M4.98 3.5a2.5 2.5 0 11-.01 5 2.5 2.5 0 01.01-5zM3 9.8h4V21H3V9.8zm6.5 0h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-4.9c0-1.2 0-2.7-1.7-2.7s-1.9 1.3-1.9 2.6V21h-4V9.8z"/></svg>
+      <svg viewBox="0 0 24 24" aria-label="Instagram"><path d="M12 7.2A4.8 4.8 0 1012 16.8 4.8 4.8 0 0012 7.2zm0 7.9a3.1 3.1 0 110-6.2 3.1 3.1 0 010 6.2zM17.3 6a1.1 1.1 0 100 2.2 1.1 1.1 0 000-2.2zM12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.200-1.700 4.800-4.900 4.900-1.300.1-1.600.1-4.800.1s-3.600 0-4.800-.1c-3.300-.1-4.800-1.700-4.900-4.900C2.200 15.600 2.200 15.300 2.200 12s0-3.600.1-4.800C2.400 3.900 4 2.400 7.200 2.300 8.400 2.200 8.800 2.200 12 2.200z" fill-rule="evenodd" clip-rule="evenodd"/></svg>
+      <svg viewBox="0 0 24 24" aria-label="YouTube"><path d="M21.6 7.2a2.5 2.5 0 00-1.8-1.8C18.200 5 12 5 12 5s-6.200 0-7.800.4A2.500 2.500 0 002.400 7.200C2 8.800 2 12 2 12s0 3.200.4 4.800a2.500 2.500 0 001.800 1.800C5.800 19 12 19 12 19s6.200 0 7.800-.4a2.500 2.500 0 001.800-1.800C22 15.200 22 12 22 12s0-3.200-.4-4.800zM10 15V9l5.200 3L10 15z"/></svg>
+    </div></div>
+    <div><h4>Download app</h4><div class="bdg"><a href="#"><small>Get it on</small>Google Play</a><a href="#"><small>Download on the</small>App Store</a></div></div>
+  </div>
+  <div class="copy">© 2020–2025 Ultrahuman Healthcare Pvt Ltd. All rights reserved. ISO27001, GDPR, and HIPAA compliant.</div>
+  <div class="fw"><span class="wm" role="img" aria-label="Ultrahuman"></span></div>
+</footer>
+</main>
+
+
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches,clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+/*IM*/const IM=new Proxy({},{get:(_,k)=>'img/'+k+'.jpg'});/*IM_END*/
+/*FG*/const FG=new Proxy({},{get:(_,k)=>'img/fg/'+k+'.jpg'});/*FG_END*/
+/*OR*/const OR=new Proxy({},{get:(_,k)=>'img/orbs/'+k+'.webp'});/*OR_END*/
+const F=[
+ {n:'Jade Pro',cat:'Intelligence',tag:'An intelligence layer built around your biology.',body:'Ask anything about your own data. Jade brings together your Ring, Blood Vision, Glucose and Home signals into one system, so answers are grounded in your full context. Use Normal mode for quick answers, or Deep Research for answers backed by credible medical research.',img:'jade',tint:'#2f8f66',g:'✱',row:['Jade AI','Your AI health coach','Unlimited credits','$4.99/mo']},
+ {n:'AFib Detection',cat:'Heart health',tag:'Nightly screening for signs of atrial fibrillation.',body:'Your Ring captures heart rhythm data while you sleep. FibriCheck, a CE-marked and FDA-cleared heart rhythm technology, analyses those readings using a clinically validated algorithm to look for signs of AFib or atrial flutter. A medical-grade report is ready each morning and saved to your history over time.',img:'afib',tint:'#b8914f',g:'♥',row:['AFib Detection','Heart health','Included','$4.99/mo']},
+ {n:'Cycle & Ovulation Pro',cat:'Women’s health',tag:'Ovulation confirmed from your own biometrics.',body:'Most cycle trackers predict ovulation from past cycles. Cycle & Ovulation Pro uses OvuSense technology and your own biometrics to confirm whether ovulation actually happened, with over 90% accuracy. It also detects anovulatory cycles and Cycle Flags, helping you understand patterns across irregular, long, short and changing cycles.',img:'cycle',tint:'#5d86b8',g:'◐',row:['Cycle & Ovulation Pro','Women’s health','Included','$4.99/mo']},
+ {n:'Respiratory Health',cat:'Sleep & breathing',tag:'Snoring, coughing and breathing disruptions, tracked every night.',body:'Respiratory Health combines Sleep Cycle’s sound analysis with your Ring’s HRV, heart rate, movement and sleep data. See when snoring, coughing and breathing disruptions happened, how your body responded and how patterns change over time. Powered by Sleep Cycle, with insights from 3 billion+ analysed sleep sessions.',img:'resp',tint:'#c0743a',g:'≋',row:['Respiratory Health','Sleep & breathing','Included','$4.99/mo']},
+ {n:'HealthEx',cat:'Medical records',tag:'Your medical records alongside your ring data for informed health choices.',body:'View your lab results, diagnoses and prescriptions alongside your sleep, temperature, HRV and recovery scores. Discover the checks your medicines call for. Understand each finding in plain language. Walk into your next appointment prepared, with the evidence behind every question.',img:'healthex',tint:'#d77f3a',g:'+',row:['HealthEx','Medical records','Included','$4.99/mo']},
+ {n:'Les Mills',cat:'Training',tag:'Training matched to how your body recovered.',body:'Your Ring uses your recovery to match you with the right Les Mills workout for the day. Choose from 23 programs and 1,000+ classes, with heart-rate zones, calories and session stats automatically logged after every workout.',img:'lesmills',tint:'#e0302f',g:'LM',row:['Les Mills','Training','Included','$4.99/mo']},
+ {n:'UltraSync for Tesla',cat:'Driving',tag:'See how your body responds to every drive.',body:'UltraSync links every drive with your Ring data. See your readiness before you set off, how your heart rate and HRV respond along the route, and which journeys place the most strain on your body.',img:'tesla',tint:'#2748d4',g:'T',row:['UltraSync for Tesla','Driving','Included','$4.99/mo']},
+ {n:'Migraine Insights',cat:'Brain',tag:'Understand the patterns around your headaches.',body:'See the 72 hours of Ring data around each logged headache and uncover patterns across HRV, sleep, recovery and cycle. Built with Click Therapeutics, Migraine Insights pairs those insights with an 8-week programme of short lessons and practical skills.',img:'migraine',tint:'#3f8f46',g:'✺',row:['Migraine Insights','Brain','Included','$4.99/mo']},
+ {n:'UltrahumanX coverage',cat:'Protection',tag:'Protection for your Ring, from damage to loss and theft.',body:'UltrahumanX is designed for everything that can happen after you start wearing your Ring. From changes in fit to unexpected damage or loss, it gives you added protection and flexibility when you need it.',img:'ux',tint:'#6d7380',g:'✕',row:['UltrahumanX coverage','Damage, loss & theft, replacements','Included','$36/yr']}
+];
+const bars=(n,seed,max=26)=>Array.from({length:n},(_,i)=>{const h=4+Math.abs(Math.sin(i*.7+seed)*Math.cos(i*.31+seed*2))*max;return `<rect x="${i*5+2}" y="${34-h/2}" width="2" height="${h}" rx="1"/>`}).join('');
+const BOARD=[
+ [
+  ['AFib Detection',`<div class="wd dark"><div class="row"><span class="m">Afib scan</span><svg viewBox="0 0 24 24" style="width:16px;fill:none;stroke:#fff;stroke-width:1.6"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></div><svg viewBox="0 0 220 80" style="margin:18px 0 12px"><path class="ln" d="M0 42H30L38 42L44 12L52 68L58 42H92L100 42L106 24L112 54L118 42H152L160 42L166 8L174 72L180 42H220" fill="none" stroke-width="1.6" stroke-linejoin="round"/></svg><div class="row m"><span>Report ready</span><span>6:42 AM</span></div></div>`],
+  ['Respiratory Health',`<div class="wd dark"><h4>Minor respiratory events captured</h4><svg viewBox="0 0 220 68" style="margin:16px 0 10px" fill="#fff" opacity=".92">${bars(44,2,34)}<rect x="60" y="14" width="7" height="40" rx="1.5"/><rect x="146" y="20" width="7" height="28" rx="1.5"/><rect x="178" y="10" width="7" height="48" rx="1.5"/></svg><div class="row m"><span>11:16 PM</span><span>8:15 AM</span></div><div class="m" style="margin-top:8px;color:#aab0bd">● Snoring &nbsp;&nbsp; ● Coughing</div></div>`],
+  ['UltraSync for Tesla',`<div class="wd dark" style="text-align:center"><span class="m">Readiness score</span><div class="big" style="margin:8px 0 12px">33</div><div style="display:inline-flex;gap:4px"><span class="pill" style="background:#fff;color:#000">Chill</span><span class="pill">Sports</span></div><svg viewBox="0 0 220 90" style="margin-top:14px" fill="none" stroke="#4a7dff" stroke-width="1.6" stroke-linecap="round"><path d="M70 90L100 6M150 90L120 6M90 90L104 30M130 90L116 30" opacity=".9"/><rect x="92" y="52" width="36" height="22" rx="5" fill="#1b2a66" stroke="#4a7dff"/></svg></div>`]
+ ],[
+  ['Jade Pro',`<div class="wd jd"><svg viewBox="0 0 400 250" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.34)"><path d="M200 0V92"/><path d="M200 168V250"/><path d="M104 62V112H166"/><path d="M322 82V112H234"/><path d="M96 190V146H166"/><path d="M318 176V146H234"/></g><circle cx="200" cy="130" r="36" fill="rgba(20,60,45,.55)" stroke="rgba(255,255,255,.28)"/><text x="200" y="141" text-anchor="middle" style="font-size:30px;fill:#fff;font-family:system-ui">✱</text><g fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.28)"><rect x="52" y="40" width="104" height="24" rx="12"/><rect x="268" y="60" width="104" height="24" rx="12"/><rect x="44" y="188" width="104" height="24" rx="12"/><rect x="246" y="174" width="140" height="24" rx="12"/></g><g style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;fill:rgba(255,255,255,.85)" text-anchor="middle"><text x="104" y="56">METABOLISM</text><text x="320" y="76">ENVIRONMENT</text><text x="96" y="204">BLOOD VISION</text><text x="316" y="190">LIFESTYLE MARKERS</text></g></svg></div>`],
+  ['Cycle & Ovulation Pro',`<div class="wd light"><div class="row"><h4 style="font-size:15px">High fertility</h4><svg viewBox="0 0 24 24" style="width:16px;fill:none;stroke:#111;stroke-width:1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></div><span class="m">Ovulation phase · Day 14</span><div style="display:flex;gap:6px;margin:14px 0"><span class="pill">99°F</span><span class="pill">False start detected</span></div><div class="row" style="padding-top:12px;border-top:1px solid #eee"><span>In fertile window</span><span class="m">1 Aug – 7 Aug</span></div></div>`],
+  ['Migraine Insights',`<div class="wd light"><div style="display:inline-block;padding:5px 10px;border-radius:8px;background:#f1f1f4;font-size:11px;margin-bottom:10px">Migraine logged ›</div><svg viewBox="0 0 220 90" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10L36 54L66 44L96 52L126 40L156 48L186 38L212 44"/><g fill="#111" stroke="none"><circle cx="36" cy="54" r="3.4"/><circle cx="66" cy="44" r="2.6"/><circle cx="96" cy="52" r="2.6"/><circle cx="126" cy="40" r="2.6"/><circle cx="156" cy="48" r="2.6"/><circle cx="186" cy="38" r="2.6"/></g><g fill="#c9c9cf" stroke="none">${[10,40,70,100,130,160,190,212].map(x=>`<circle cx="${x}" cy="80" r="2.6"/>`).join('')}</g><circle cx="40" cy="80" r="2.8" fill="#1a3be0"/><circle cx="70" cy="80" r="2.8" fill="#1a3be0"/></svg><div class="row m" style="margin-top:8px"><span>72h of ring data</span><span>8-week programme</span></div></div>`]
+ ],[
+  ['Les Mills',`<div class="wd dark" style="text-align:center"><span class="m">Training readiness score</span><div class="big" style="margin:6px 0">96</div><div style="font-size:11px;color:#b9bdc8">Recovery is looking good, time to push harder!</div><div class="st"><div><b>52ms</b><span>HRV</span></div><div><b>45bpm</b><span>RHR</span></div><div><b>75</b><span>REC</span></div><div><b>-0.2°C</b><span>Temp</span></div><div><b>7h 32m</b><span>Sleep</span></div></div></div>`],
+  ['HealthEx',`<div class="wd light"><div class="row"><h4>Ask for a kidney function</h4><span class="pill" style="background:#ffe3e3;color:#c0392b">High</span></div><div style="margin:14px 0 12px;height:4px;border-radius:2px;background:#eee;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:62%;border-radius:2px;background:#e4585a"></i></div><div style="display:grid;gap:9px"><div class="row" style="justify-content:flex-start;gap:9px"><i style="width:7px;height:7px;border-radius:50%;background:#111;flex:none"></i>Not rechecked in 2 years</div><div class="row" style="justify-content:flex-start;gap:9px;align-items:flex-start"><i style="width:7px;height:7px;border-radius:50%;background:#111;flex:none;margin-top:5px"></i>Lisinopril and hydrochlorothiazide both need kidney checks.</div><div class="row" style="justify-content:flex-start;gap:9px"><i style="width:7px;height:7px;border-radius:50%;border:1.5px solid #111;flex:none"></i>Missing markers</div></div></div>`],
+  ['UltrahumanX coverage',`<div class="wd" style="background:none;box-shadow:none;padding:6px 0"><div class="xc"><span class="wm"></span><i>✕</i></div></div>`]
+ ]
+];
+
+
+const TK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+const FAQ=[
+ ['What is Ultrahuman Max?','One membership that unlocks everything your ring can do: heart, cycle, sleep, migraine, workout and driving insights, plus Jade Pro and UltrahumanX coverage.'],
+ ['What’s included in Max?','Jade Pro, UltrahumanX coverage, AFib Detection, Cycle & Ovulation Pro, Respiratory Health, HealthEx, Les Mills, UltraSync for Tesla and Migraine Insights. Every premium PowerPlug, switched on together.'],
+ ['How much does it cost?','Starting at $9.99 a month, or $99.99 a year. Bought separately, the same nine would come to $42.92 a month or $515.04 a year, so Max saves you up to 81%. Prices in USD.'],
+ ['Will new PowerPlugs be added?','Yes. New PowerPlugs are added to Max the day they launch.'],
+ ['Is there anything for my Ultrahuman products?','Max includes member pricing on Ultrahuman products.'],
+ ['What does UltrahumanX cover?','Damage, loss and theft, with express replacements. It also covers weight-loss resizing and trade-in value, and brings priority support.']
+];
+const WID={};BOARD.flat().forEach(([n,h])=>WID[n]=h);
+const ORBS=['lesmills','afib','tesla','cycle','migraine','resp'];
+const orbEl=(k,x,y,s,extra='')=>`<i class="ob" style="--x:${x}%;--y:${y}%;--s:${s};--im:url(${OR[k]});${extra}"></i>`;
+
+/* ---- hero orbs ---- */
+const HO=[['lesmills',71,29,'clamp(110px,17vw,300px)',1.0],['afib',16,28,'clamp(80px,11vw,200px)',.75],['tesla',86,70,'clamp(60px,8vw,150px)',.55],['cycle',22,74,'clamp(90px,13vw,240px)',.9],['migraine',46,10,'clamp(46px,5.2vw,100px)',.4],['resp',73,86,'clamp(66px,9vw,170px)',.65]];
+$('#fob').innerHTML=[['lesmills',14,22,'clamp(70px,10vw,170px)'],['afib',86,28,'clamp(56px,8vw,140px)'],['cycle',80,76,'clamp(80px,11vw,200px)'],['tesla',18,74,'clamp(60px,8.5vw,150px)'],['migraine',50,9,'clamp(40px,5vw,90px)'],['resp',52,92,'clamp(50px,6.5vw,110px)']].map((o,i)=>orbEl(o[0],o[1],o[2],o[3],`animation-delay:${-i*1.4}s`)).join('');
+
+/* ---- about sentence ---- */
+const TXT='Ultrahuman Max is one membership that unlocks *everything* *your* *ring* *can* *do.* Heart, cycle, sleep, training and driving, read by Jade Pro and protected by UltrahumanX, from $9.99 a month.';
+const toks=TXT.split(' '),parts=[];
+for(let i=0;i<toks.length;i++){const t=toks[i],nx=toks[i+1],m=nx&&nx.match(/^\{(\w+)\}(.*)$/);
+  const w=`<span class="w">${t.replace(/\*/g,'')}</span>`;
+  if(m){parts.push(`${w}<span class="ot" style="--im:url(${OR[m[1]]})"></span>${m[2]?`<span class="w">${m[2]}</span>`:''}`);i++}else parts.push(w)}
+$('#abt').innerHTML=parts.join(' ');
+const abw=$$('#abt .w');
+
+/* ---- the nine scenes ---- */
+const NP=F.length;
+$('#plugs').style.height=`calc(${NP*78}svh + 100svh)`;
+$('#scns').innerHTML=F.map((f,i)=>`<article class="scn" data-i="${i}" style="--tint:${f.tint}"><div class="sl"><div class="no mono"><b>${String(i+1).padStart(2,'0')}</b><i></i>${f.cat}</div><h3>${f.n}</h3><p class="tg">${f.tag}</p><p class="bd">${f.body}</p><a class="lk" href="#download">Get the app</a></div><div class="sv"><div class="cv"><span class="gl"></span><img src="${FG[f.img]}" alt="${f.n}">${f.n!=='UltrahumanX coverage'&&WID[f.n]?WID[f.n]:''}</div></div></article>`).join('');
+$('#rl').innerHTML=F.map((f,i)=>`<a href="#plugs" data-i="${i}"><span>${f.n}</span><i></i></a>`).join('');
+const scn=$$('.scn'),rlA=$$('#rl a'),pgb=$('#pgb'),pgs=$('#plugs');
+let curP=-1;
+function setScene(i){if(i===curP)return;scn.forEach((s,k)=>{s.classList.toggle('on',k===i);s.classList.toggle('out',k<i)});rlA.forEach((a,k)=>a.classList.toggle('on',k===i));curP=i}
+rlA.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const i=+a.dataset.i,top=pgs.getBoundingClientRect().top+scrollY,run=pgs.offsetHeight-innerHeight;scrollTo({top:top+run*((i+.5)/NP),behavior:reduce?'auto':'smooth'})}));
+
+/* ---- glance board ---- */
+$('#gb').innerHTML=BOARD.map(col=>`<div class="gc">${col.map(([t,w])=>`<div class="gk rv"><span class="tg2 mono">${t}</span><span class="ck">${TK}</span>${w}<div class="cap"><b>${t}</b>${(F.find(f=>f.n===t)||{cat:''}).cat}</div></div>`).join('')}</div>`).join('');
+
+/* ---- price count-down ---- */
+const pn=$('#pn');let counted=false;
+new IntersectionObserver(es=>{if(es[0].isIntersecting&&!counted){counted=true;$('#bars').classList.add('in');if(reduce)return;const t0=performance.now();(function t(n){const p=clamp((n-t0)/1600,0,1),e=1-Math.pow(1-p,3),v=42.92+(9.99-42.92)*e;pn.textContent='$'+v.toFixed(2);if(p<1)requestAnimationFrame(t)})(t0)}},{threshold:.5}).observe(pn);
+if(reduce){$('#bars').classList.add('in')}
+/* ---- faq ---- */
+$('#qa').innerHTML=FAQ.map(([q,a],i)=>`<details${i===0?' open':''}><summary>${q}<i></i></summary><p>${a}</p></details>`).join('');
+$$('.qa details').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)$$('.qa details').forEach(o=>{if(o!==d)o.open=false})}));
+
+/* ---- nav ---- */
+document.documentElement.style.scrollBehavior=reduce?'auto':'smooth';
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+$$('.rv').forEach(e=>io.observe(e));
+
+/* ---- backdrop: a lit 3D object (ring / eclipse / particle sphere) whose perspective and light change as you scroll ---- */
+const bgc=$('#bg'),gl=bgc.getContext('webgl',{antialias:false});
+const sm=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x)};
+let SH=null;
+if(gl){
+const vs='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const fs=`precision highp float;
+uniform vec2 uRes,uOff;uniform float uT,uMorph,uDots,uPart,uYaw,uPitch,uRoll,uLA,uBeam,uShow,uScale;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+mat3 RM;
+mat3 rotM(float y,float p,float r){float cy=cos(y),sy=sin(y),cp=cos(p),sp=sin(p),cr=cos(r),sr=sin(r);
+  mat3 Y=mat3(cy,0.,-sy, 0.,1.,0., sy,0.,cy);mat3 X=mat3(1.,0.,0., 0.,cp,sp, 0.,-sp,cp);mat3 Z=mat3(cr,sr,0., -sr,cr,0., 0.,0.,1.);return Z*X*Y;}
+float sdRing(vec3 p){vec2 q=vec2(length(p.xz)-.72,p.y);vec2 d=abs(q)-vec2(.12,.3)+.05;return length(max(d,0.))+min(max(d.x,d.y),0.)-.05;}
+float map(vec3 p){p=RM*(p-vec3(uOff,0.))/uScale;return mix(sdRing(p),length(p)-.8,uMorph)*uScale;}
+void main(){
+  vec2 fc=gl_FragCoord.xy;
+  float cell=mix(1.,max(3.,uRes.y/150.),uDots);
+  vec2 id=floor(fc/cell),cc=(id+.5)*cell;
+  vec2 uv0=(fc-.5*uRes)/uRes.y,uvc=(cc-.5*uRes)/uRes.y;
+  vec2 jit=(vec2(h(id+3.),h(id+9.))-.5)*cell/uRes.y*uPart*uDots*2.4;
+  vec3 ro=vec3(0.,0.,3.6),rd=normalize(vec3(uvc+jit,-1.7));
+  RM=rotM(uYaw,uPitch,uRoll);
+  float t=1.2,dmin=9.;bool hit=false;
+  for(int i=0;i<56;i++){vec3 p=ro+rd*t;float d=map(p);dmin=min(dmin,d);if(d<.0025){hit=true;break;}t+=d*.9;if(t>7.)break;}
+  vec3 cB=vec3(.10,.22,.75),cC=vec3(.62,.82,1.),cV=vec3(.5,.35,.95);
+  float r0=length(uv0);
+  vec3 bg=vec3(.006,.012,.04)+cB*.09*exp(-r0*1.3);
+  float g=exp(-dmin*3.0);bg+=(cB*g*.55+cC*g*g*g*.2)*uShow;
+  float bt=dot(uv0-vec2(0.,-.3),normalize(vec2(.55,1.)));
+  vec3 bc=mix(mix(cB,cV,smoothstep(-.3,0.,bt)),cC,smoothstep(0.,.3,bt));
+  bg+=bc*smoothstep(.3,0.,abs(bt))*uBeam*.34*smoothstep(.6,-.6,uv0.y);
+  vec2 sp=uv0-vec2(uOff.x*.9,-.5);bg*=1.-exp(-(sp.x*sp.x/.28+sp.y*sp.y/.012))*.7*uBeam;
+  vec3 col=bg;
+  if(hit){
+    vec3 p=ro+rd*t;vec2 e=vec2(.002,0.);
+    vec3 n=normalize(vec3(map(p+e.xyy)-map(p-e.xyy),map(p+e.yxy)-map(p-e.yxy),map(p+e.yyx)-map(p-e.yyx)));
+    vec3 L=normalize(vec3(cos(uLA)*.9,.5+.25*sin(uLA*.6),sin(uLA)*.9+.15));
+    float diff=max(dot(n,L),0.),rim=pow(1.-max(dot(n,-rd),0.),2.4);
+    float back=max(dot(n,normalize(vec3(-L.x,.15,-L.z))),0.);
+    vec3 base=cB*(.05+.55*diff)+cC*pow(diff,3.)*.55;
+    base+=mix(cB*1.6,cV,.4+.4*sin(uLA))*rim*(.35+1.1*back)*1.5;
+    base+=cC*rim*pow(diff,2.)*.4;
+    base*=.88+.24*h(fc+uT);
+    float lum=dot(base,vec3(.3,.59,.11)),cov=1.;
+    if(uDots>.01){
+      vec2 fr=(fc-cc)/cell;float rad=.2+.42*clamp(lum*2.2,0.,1.),dd=length(fr),dotc=smoothstep(rad,rad-.18,dd);
+      float vis=1.;if(uPart>.01){float nz=h(id+7.);vis=step(nz*uPart*.9,clamp(lum*2.4,0.,1.)+.05);}
+      cov=mix(1.,dotc*vis,uDots);}
+    col=mix(bg,base*1.15,cov*uShow);}
+  col=1.-exp(-col*1.5);
+  col+=(h(fc*.9+uT*31.)-.5)*.03;
+  col*=1.-.7*smoothstep(.4,1.2,length(uv0*vec2(.78,1.)));
+  gl_FragColor=vec4(col,1.);}`;
+const mk=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o};
+const pr=gl.createProgram();gl.attachShader(pr,mk(gl.VERTEX_SHADER,vs));gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);
+if(gl.getProgramParameter(pr,gl.LINK_STATUS)){gl.useProgram(pr);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+ const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+ SH={loc:{}};['uRes','uOff','uT','uMorph','uDots','uPart','uYaw','uPitch','uRoll','uLA','uBeam','uShow','uScale'].forEach(n=>SH.loc[n]=gl.getUniformLocation(pr,n))}}
+let scale=.62;
+function fitBg(){bgc.width=Math.round(innerWidth*scale);bgc.height=Math.round(innerHeight*scale);if(gl)gl.viewport(0,0,bgc.width,bgc.height)}
+addEventListener('resize',fitBg);fitBg();
+/* scene states: [morph, dots, part, yaw, pitch, roll, light, offX, beam, scale] */
+const ST={
+ top:[0,.1,0,.35,1.15,.3,.7,.3,.9,1],
+ about:[1,0,0,.4,.2,0,2.9,.0,0,1.25],
+ download:[1,1,1,.4,.2,0,1.3,0,0,1.05]
+};
+F.forEach((f,i)=>{ST['p'+i]=[[0,1,.5][i%3],i%2?.9:.15,i%2?.7:0,i*.83,1.0+.35*Math.sin(i*1.3),.4*Math.cos(i),i*.78+.4,.0,i%3===0?.6:.1,[1,1.15,1.1][i%3]]});
+const cur=ST.top.slice();
+let look='top',burst=0,T=0,last=performance.now(),mx=0,my=0,tmx=0,tmy=0,lastY=scrollY,ema=.016,nf=0;
+addEventListener('pointermove',e=>{tmx=(e.clientX-innerWidth/2)/innerHeight;tmy=-(e.clientY-innerHeight/2)/innerHeight});
+const sections=$$('[data-look]'),NAVMAP={top:'top',about:'top',glance:'glance',plugs:'plugs',faq:'faq'};let activeEl=null;
+function progress(el){const r=el.getBoundingClientRect();return clamp(-r.top/Math.max(1,r.height-innerHeight),0,1)}
+function pickSection(){const mid=innerHeight*.5;let best=sections[0];for(const s of sections){const r=s.getBoundingClientRect();if(r.top<=mid&&r.bottom>mid){best=s;break}}
+  let nl=best.id==='top'?'top':best.id==='about'?'about':best.id==='plugs'?'p'+clamp(Math.floor(progress(pgs)*NP),0,NP-1):best.id==='download'?'download':look;
+  if(best!==activeEl){activeEl=best;const nk=NAVMAP[best.id];if(nk)$$('.nav .links a').forEach(a=>a.classList.toggle('on',a.dataset.s===nk))}
+  look=nl}
+/* hero + about + scenes react to scroll */
+const hs=$('#top'),abEl=$('#about');
+function sceneFrame(now){
+  const ar=abEl.getBoundingClientRect();
+  if(ar.bottom>-50&&ar.top<innerHeight){const p=clamp(-ar.top/(ar.height-innerHeight),0,1);abw.forEach((w,i)=>w.classList.toggle('on',reduce||p>.06+.78*(i/abw.length)))}
+  const gr=pgs.getBoundingClientRect();
+  if(gr.bottom>0&&gr.top<innerHeight){const p=progress(pgs);setScene(clamp(Math.floor(p*NP),0,NP-1));pgb.style.setProperty('--p',p.toFixed(4))}}
+/* ------- hero: type on a rolling ribbon ------- */
+const rib=$('#rib'),rc=rib.getContext('2d'),WORD='Everything';
+let RW=0,RH=0,tex=null,TW=0,TH=0,rot=0;
+function buildTex(){const dpr=Math.min(2,devicePixelRatio||1);RW=rib.clientWidth;RH=rib.clientHeight;rib.width=RW*dpr;rib.height=RH*dpr;rc.setTransform(dpr,0,0,dpr,0,0);
+  const fs=Math.min(RW*.135,RH*.3);const t=document.createElement('canvas').getContext('2d');t.font=`400 ${fs}px Geist,system-ui,sans-serif`;
+  const w=Math.ceil(t.measureText(WORD).width),gap=Math.round(fs*1.7);TW=w+gap;TH=Math.round(fs*1.5);
+  tex=document.createElement('canvas');tex.width=TW*2;tex.height=TH*2;const x=tex.getContext('2d');x.scale(2,2);x.font=`400 ${fs}px Geist,system-ui,sans-serif`;x.fillStyle='#fff';x.textBaseline='alphabetic';x.letterSpacing=(-fs*.045)+'px';x.fillText(WORD,gap/2,fs*1.08)}
+addEventListener('resize',buildTex);(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(buildTex);buildTex();
+function ribFrame(now){
+  const r=hs.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight||!tex)return;
+  const p=Math.min(1,Math.max(0,-r.top/(r.height-innerHeight)));
+  rot=reduce?.5:(now*.00011+p*Math.PI*1.7);
+  rc.clearRect(0,0,RW,RH);
+  const R=TW/Math.PI,cx=RW*.5,cy=RH*.42+p*RH*.06,tilt=-.19,pitch=RH*.075,step=2;
+  const fade=1-Math.min(1,Math.max(0,(p-.78)/.22));
+  rc.globalAlpha=fade;
+  for(let k=0;k<2;k++){
+    for(let sx=-R;sx<R;sx+=step){
+      const s=sx/R,th0=Math.asin(Math.max(-1,Math.min(1,s))),th=k?Math.PI-th0:th0,c=Math.cos(th);
+      if(k===0&&c<0)continue;
+      const arc=(th+rot)*R,u=((arc%TW)+TW)%TW,vis=Math.abs(Math.cos(th0)),persp=k?.78:(1+.16*vis);
+      const x=cx+sx,y=cy+sx*tilt+(k?pitch*vis:-pitch*vis)+Math.sin(th0)*0;
+      const hh=TH*persp;
+      rc.save();rc.globalAlpha=fade*(k?.5*vis:1);
+      if(k){rc.translate(x,y);rc.scale(1,-1);rc.drawImage(tex,u*2,0,Math.max(1,step*2/Math.max(.12,vis)),TH*2,0,-hh*.5,step,hh)}
+      else{rc.drawImage(tex,u*2,0,Math.max(1,step*2/Math.max(.12,vis)),TH*2,x,y-hh*.5,step,hh)}
+      rc.restore()}}
+  rc.globalAlpha=1}
+
+
+function bgFrame(now){
+  const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;
+  mx+=(tmx-mx)*(1-Math.pow(.01,dt));my+=(tmy-my)*(1-Math.pow(.01,dt));
+  pickSection();sceneFrame(now);ribFrame(now);
+  const tg=ST[look]||ST.top,k=1-Math.pow(.06,dt);
+  for(let i=0;i<cur.length;i++)cur[i]+=(tg[i]-cur[i])*k;
+  if(++nf>20){ema=ema*.9+dt*.1;if(ema>.034&&scale>.34){scale-=.08;fitBg();ema=.02;nf=0}}
+  if(SH){const u=SH.loc,sy=scrollY;
+    const yaw=cur[3]+sy*.0011+mx*.5,pitch=cur[4]+.25*Math.sin(sy*.0008)+my*.3,roll=cur[5]+.18*Math.sin(sy*.0006+1),la=cur[6]+sy*.0007;
+    gl.uniform2f(u.uRes,bgc.width,bgc.height);gl.uniform2f(u.uOff,cur[7],0);
+    gl.uniform1f(u.uT,T);gl.uniform1f(u.uMorph,cur[0]);gl.uniform1f(u.uDots,cur[1]);gl.uniform1f(u.uPart,cur[2]);
+    gl.uniform1f(u.uYaw,yaw);gl.uniform1f(u.uPitch,pitch);gl.uniform1f(u.uRoll,roll);gl.uniform1f(u.uLA,la);gl.uniform1f(u.uBeam,cur[8]);gl.uniform1f(u.uShow,1);gl.uniform1f(u.uScale,cur[9]);
+    gl.drawArrays(gl.TRIANGLES,0,3)}
+  requestAnimationFrame(bgFrame)}
+setScene(0);
+requestAnimationFrame(t=>{last=t;bgFrame(t)});
+</script>
+</body>
+</html>

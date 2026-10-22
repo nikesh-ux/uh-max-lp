@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jade burst</title>
+<style>
+html,body{margin:0;background:#010807}
+.sp{height:560vh}
+.ch{position:fixed;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font:300 clamp(40px,7vw,120px)/1.02 -apple-system,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.05em;color:#fff;opacity:0;pointer-events:none;text-shadow:0 0 60px rgba(120,255,190,.45);will-change:opacity,filter,transform}
+.ch small{display:block;margin-top:18px;font-size:clamp(14px,1.4vw,20px);font-weight:400;letter-spacing:-.01em;opacity:.8}
+.bar{position:fixed;right:18px;top:50%;width:2px;height:120px;margin-top:-60px;background:rgba(255,255,255,.18);border-radius:2px;overflow:hidden}
+.bar i{display:block;width:100%;height:30%;background:#fff;border-radius:2px;transform-origin:top}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.tg{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:5;display:flex;padding:4px;border-radius:999px;background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18)}
+.tg button{appearance:none;border:0;background:transparent;cursor:pointer;padding:8px 20px;border-radius:999px;font:500 14px/1 -apple-system,"Helvetica Neue",Arial,sans-serif;color:#fff;transition:background .25s,color .25s}
+.tg button.on{background:#fff;color:#04140f}
+.hint{position:fixed;left:24px;bottom:20px;font:12px/1 -apple-system,"Helvetica Neue",Arial,sans-serif;color:rgba(255,255,255,.5);letter-spacing:.02em}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="sp"></div>
+<div class="ch" id="c1">Jade Pro<small>Scroll</small></div><div class="ch" id="c2">Ask anything.<small>Your ring, Blood Vision, glucose and Home, in one place.</small></div><div class="ch" id="c3">Grounded in you.<small>Included with Max.</small></div>
+<div class="bar"><i id="pb"></i></div>
+<div class="tg"><button data-v="1" class="on">V1</button><button data-v="2">V2</button></div>
+<div class="hint">Move the pointer to swing the burst</div>
+<script>
+const cv=document.getElementById('c'),gl=cv.getContext('webgl',{antialias:false});
+const FS1=`precision highp float;uniform vec2 uRes,uPtr;uniform float uT,uS,uV;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+7.1;a*=.5;}return s*1.07;}
+// the plumes: mirrored about the vertical axis, fanning out of a dark point low in the frame
+float plumes(vec2 d,float t,float sway){
+  float r=length(d);float th=atan(d.x,d.y);                 // 0 straight up
+  float m=abs(th);                                          // mirror
+  float ang=m+sway*.25*smoothstep(0.,1.5,r);
+  float a=fbm(vec2(ang*(7.5+5.*uS),r*1.1-t*.9));                    // long blades moving outward
+  float b=fbm(vec2(ang*17.+3.,r*2.4-t*1.5));                // finer fibres inside them
+  float blade=pow(clamp(a*1.25,0.,1.),2.4)*(.55+.9*b);
+  // the fan: wide at the sides, a second narrow plume up the middle
+  float fan=smoothstep(2.35,.25,m);
+  float up=exp(-m*m*5.5)*.9;
+  float len=exp(-r*(.9+.7*m*.4));                           // the blades fade the further they run
+  float core=smoothstep(.04,.34,r);                         // dark where they spring from
+  return blade*(fan*.9+up)*len*core*1.9;}
+void main(){vec2 uv=gl_FragCoord.xy/uRes;float asp=uRes.x/uRes.y;vec2 p=(uv-.5)*vec2(asp,1.);
+  float t=uT*.35+uS*3.2;
+  vec2 O=vec2((uPtr.x-.5)*.25,-.50+.66*uS);
+  float sway=(uPtr.x-.5)*2.+.35*sin(t*.5);
+  vec2 d=p-O;
+  // a soft zoom blur on top, so the blades smear along their length
+  float acc=0.;float ws=0.;
+  for(int i=0;i<7;i++){float k=float(i)/6.;float w=1.-k*.5;acc+=plumes(d*(1.-k*(.10+.4*uV)),t+k*.05,sway)*w;ws+=w;}
+  float I=acc/ws;
+  // colour: deep teal, aqua, mint-white at the hottest
+  vec3 c=vec3(0.);
+  c+=vec3(.00,.16,.11)*smoothstep(0.,.35,I);
+  c+=vec3(.08,.62,.46)*smoothstep(.12,.8,I);
+  c+=vec3(.58,.98,.76)*smoothstep(.55,1.5,I);
+  c+=vec3(.9,1.,.96)*smoothstep(1.2,2.4,I)*.7;
+  // a warmer, greener cast low and at the edges, like the reference's bottom corners
+  float g=smoothstep(.0,.9,length(d*vec2(.8,1.)))*(1.-smoothstep(.1,.6,uv.y));
+  c=mix(c,c*vec3(.7,1.,.6)+vec3(.02,.1,.03),g*.6);
+  // glow where it all springs from
+  c+=vec3(.05,.45,.40)*exp(-length(d)*3.2)*.5*smoothstep(.0,.15,length(d));
+  // scroll: the jade turns violet as it climbs, and flares when you move fast
+  c=mix(c,vec3(c.g*.85+c.r*.2,c.b*.45+c.g*.12,c.g*1.05),smoothstep(.5,1.,uS)*.85);
+  c*=.92+.12*sin(uT*.8)+uV*1.4;
+  float lum=dot(c,vec3(.3,.59,.11));c+=c*smoothstep(.5,1.,lum)*.3;
+  c*=1.-.7*smoothstep(.45,1.15,length(p*vec2(.8,1.)));
+  c+=(h(gl_FragCoord.xy+fract(uT)*91.)-.5)*.06;
+  gl_FragColor=vec4(c,1.);}`;
+const FS2=`precision highp float;uniform vec2 uRes,uPtr;uniform float uT,uS,uV;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+7.1;a*=.5;}return s*1.07;}
+// one curtain: a rippling lower edge with long rays climbing from it and fading into haze
+vec3 curtain(vec2 p,float t,float seed,float yb,float amp,float freq,float spd,float height,vec3 lo,vec3 hi){
+  float w=fbm(vec2(p.x*1.1+seed,t*.18+seed))-.5;
+  float edge=yb+amp*sin(p.x*freq+t*spd+seed*3.+w*3.)+.22*w;
+  float up=p.y-edge;
+  float env=smoothstep(-.035,.03,up)*exp(-max(up,0.)*height);          // sharp bottom, soft top
+  float rays=fbm(vec2(p.x*(15.+seed*2.)+w*6.,up*.9-t*.45+seed));
+  float fine=vn(vec2(p.x*70.+seed*9.,up*2.-t*.6));
+  float I=env*(.35+1.15*pow(clamp(rays*1.3,0.,1.),1.7)*(.7+.5*fine));
+  vec3 col=mix(lo,hi,clamp(exp(-max(up,0.)*5.5)*1.1,0.,1.));            // brightest right on the edge
+  return col*I;}
+void main(){vec2 uv=gl_FragCoord.xy/uRes;float asp=uRes.x/uRes.y;vec2 p=(uv-.5)*vec2(asp,1.);
+  vec2 pq=uPtr-.5;float t=uT*.5+uS*4.;vec2 p0=p;p.x+=.03*sin(p.y*16.+uT*6.)*uV;p.y+=uS*.5;
+  p.y=(p.y+.5)*(1.+.22*pq.y)-.5;   // the pointer leans the whole view; each layer then slides by its own depth   // scrolling tilts the camera up into the sky
+  float sS=smoothstep(0.,.45,uS)*(1.-.45*smoothstep(.75,1.,uS));float tn=smoothstep(.4,.95,uS)*.85;
+  vec3 c=vec3(.0,.012,.012)+vec3(0.,.025,.02)*smoothstep(-.5,.6,p.y);     // night sky
+  // a drifting haze of green high up
+  c+=vec3(.02,.15,.12)*smoothstep(.35,.95,fbm((p-pq*vec2(.03,.02))*vec2(1.2,.8)+vec2(t*.1,0.)))*smoothstep(-.1,.5,p.y)*.5;
+  // the curtains: a big one sweeping across the left, a narrower one standing in the middle, a faint one on the right
+  c+=curtain(p-pq*vec2(.12,.08),t,0.,-.12,.18,2.0,.55,4.3,mix(vec3(.05,.52,.38),vec3(.46,.12,.52),tn),mix(vec3(.42,.96,.72),vec3(1.,.5,.82),tn))*(.8+.7*sS);
+  c+=curtain(p+vec2(-.12,0.)-pq*vec2(.08,.05),t*1.1,3.7,-.30,.10,3.1,-.45,4.8,mix(vec3(.05,.46,.34),vec3(.12,.36,.62),tn),mix(vec3(.38,.88,.70),vec3(.45,.85,1.),tn))*(.45+.5*sS);
+  c+=curtain(p+vec2(-.55,0.)-pq*vec2(.05,.03),t*.9,8.3,-.05,.14,1.7,.35,3.6,vec3(.04,.38,.30),vec3(.30,.76,.62))*.16;
+  // a thin ribbon winding up through the dark
+  vec2 pr=p-pq*vec2(.10,.07);float rx=.08+.10*sin(pr.y*3.2+t*.7)+.05*sin(pr.y*7.+t*.4);float rb=exp(-pow((pr.x-rx)/(.028+.02*smoothstep(-.3,.5,pr.y)+.03*uS),2.))*smoothstep(-.3,-.05,pr.y)*(1.-smoothstep(.35,.7,pr.y));
+  c+=vec3(.34,.95,.70)*rb*(.4+.8*fbm(vec2(pr.y*9.-t*.8,pr.x*30.)))*.9;
+  // stars
+  vec2 sg=floor((gl_FragCoord.xy-pq*uRes*.03)/2.);float st=step(.9982,h(sg))*(.5+.5*sin(uT*2.+h(sg+3.)*40.))*(.6+.9*uS);
+  c+=vec3(.85,1.,.9)*st*smoothstep(-.1,.3,p.y)*(1.-clamp(dot(c,vec3(1.)),0.,1.));
+  // the dark ground in the lower left, with a rim of light along its ridge
+  vec2 pg=p0-pq*vec2(.18,.12);float ridge=-.40+.12*sin(pg.x*2.4+.5)+.10*fbm(vec2(pg.x*3.,1.))-.30*smoothstep(-.1,.8,pg.x);
+  float gyv=pg.y+uS*1.4;float ground=smoothstep(.012,-.012,gyv-ridge);
+  c=mix(c,vec3(.0,.012,.01),ground);
+  c+=vec3(.2,.7,.5)*exp(-abs(gyv-ridge)*60.)*.12*(1.-ground*.5);
+  c=1.-exp(-c*1.7);
+  c*=1.-.55*smoothstep(.55,1.2,length(p*vec2(.8,1.)));
+  c+=(h(gl_FragCoord.xy+fract(uT)*91.)-.5)*.035;
+  gl_FragColor=vec4(c,1.);}`;
+function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o}
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+function mk(FS){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(p);
+  return {p,l:gl.getAttribLocation(p,'p'),uR:gl.getUniformLocation(p,'uRes'),uT:gl.getUniformLocation(p,'uT'),uP:gl.getUniformLocation(p,'uPtr'),uS:gl.getUniformLocation(p,'uS'),uV:gl.getUniformLocation(p,'uV')}}
+const PR={1:mk(FS1),2:mk(FS2)};
+let VER=+(localStorage.getItem('jbver')||1);if(VER!==2)VER=1;
+function setVer(v){VER=v;try{localStorage.setItem('jbver',v)}catch(e){}document.querySelectorAll('.tg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===v));document.querySelector('.hint').textContent=v===1?'Move the pointer to swing the burst':'Move the pointer to drift the aurora'}
+document.querySelectorAll('.tg button').forEach(b=>b.onclick=()=>setVer(+b.dataset.v));
+addEventListener('keydown',e=>{if(e.key==='1')setVer(1);if(e.key==='2')setVer(2)});
+let sc=.75,px=.5,py=.5,tx=.5,ty=.5;
+function fit(){const d=Math.min(devicePixelRatio||1,1.5);cv.width=Math.round(innerWidth*sc*d);cv.height=Math.round(innerHeight*sc*d);gl.viewport(0,0,cv.width,cv.height)}
+addEventListener('resize',fit);fit();
+addEventListener('pointermove',e=>{tx=e.clientX/innerWidth;ty=1-e.clientY/innerHeight});
+let last=performance.now(),T=0,ema=.016,nf=0,ps=0,pv=0;const CH=[document.getElementById('c1'),document.getElementById('c2'),document.getElementById('c3')],PB=document.getElementById('pb');
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;px+=(tx-px)*(1-Math.pow(.03,dt));py+=(ty-py)*(1-Math.pow(.03,dt));
+  if(++nf>40){ema=ema*.9+dt*.1;if(ema>.026&&sc>.4){sc-=.1;fit();ema=.016;nf=0}}
+  const raw=scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight);const pp=ps;ps+=(raw-ps)*(1-Math.pow(.004,dt));pv+=(Math.min(1,Math.abs(ps-pp)/dt*.35)-pv)*(1-Math.pow(.02,dt));
+  // three chapters of type, each fading in out of blur and back out again
+  [[0,.1,.3],[.34,.5,.66],[.7,.85,1.01]].forEach((c,i)=>{const x=ps,a=Math.max(0,Math.min(1,x<c[1]?(x-c[0])/(c[1]-c[0]):1-(x-c[1])/(c[2]-c[1])));const o=i===0&&x<c[1]?1:a;CH[i].style.opacity=o.toFixed(3);CH[i].style.filter='blur('+((1-o)*14).toFixed(1)+'px)';CH[i].style.transform='translateY(calc(-50% + '+((1-o)*(x<c[1]?24:-24)).toFixed(1)+'px))'});
+  PB.style.transform='scaleY('+(.15+ps*.85).toFixed(3)+')';
+  const q=PR[VER];gl.useProgram(q.p);gl.enableVertexAttribArray(q.l);gl.vertexAttribPointer(q.l,2,gl.FLOAT,false,0,0);
+  gl.uniform2f(q.uR,cv.width,cv.height);gl.uniform2f(q.uP,px,py);gl.uniform1f(q.uT,T);gl.uniform1f(q.uS,ps);gl.uniform1f(q.uV,pv);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(frame)}
+setVer(VER);requestAnimationFrame(frame);
+</script>
+</body>
+</html>
