@@ -828,10 +828,17 @@ addEventListener('pointermove',e=>{const J=window.JADE;J.tx=e.clientX/innerWidth
 (function(){function e(){const J=window.JADE;if(J.tx!==undefined){J.px+=(J.tx-J.px)*.06;J.py+=(J.ty-J.py)*.06}requestAnimationFrame(e)}e()})();
 (function(){const pins=[...document.querySelectorAll('.pin')],jg=document.getElementById('gi-j');let lt=performance.now(),last=0;
   function tick(now){const dt=Math.max(.001,(now-lt)/1000);lt=now;
-    for(const sec of pins){const r=sec.getBoundingClientRect();if(r.bottom<-200||r.top>innerHeight+200)continue;
-      const x=Math.max(0,Math.min(1,-r.top/Math.max(1,r.height-innerHeight)));
-      sec.querySelectorAll('.ch').forEach((ch,i)=>{const [a0,a1,a2]=ch.dataset.r.split(',').map(Number);const a=Math.max(0,Math.min(1,x<a1?(x-a0)/(a1-a0):1-(x-a1)/(a2-a1)));const o=(i===0&&x<a1)?1:a;
-        ch.style.opacity=o.toFixed(3);ch.style.filter='blur('+((1-o)*14).toFixed(1)+'px)';ch.style.transform='translateY('+((1-o)*(x<a1?24:-24)).toFixed(1)+'px)'});
+    for(const sec of pins){const r=sec.getBoundingClientRect();if(r.bottom<-200||r.top>innerHeight+200){sec._xs=undefined;continue}
+      const xr=Math.max(0,Math.min(1,-r.top/Math.max(1,r.height-innerHeight)));
+      // the chapters follow the scroll with inertia and a speed limit, so a fast flick still gives each line time to arrive, hold and leave
+      if(sec._xs===undefined)sec._xs=xr;{const st=(xr-sec._xs)*(1-Math.exp(-dt/.3)),cap=.42*dt;sec._xs+=Math.max(-cap,Math.min(cap,st))}const x=sec._xs;
+      const sm=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
+      sec.querySelectorAll('.ch').forEach((ch,i)=>{const [a0,a1,a2]=ch.dataset.r.split(',').map(Number);
+        // fade in over the first half of its window, hold at full for a stretch either side of the middle, fade out over the last half
+        const inEnd=a0+(a1-a0)*.5,outStart=a1+(a2-a1)*.5;
+        let o=x<a1?sm((x-a0)/Math.max(1e-3,inEnd-a0)):1-sm((x-outStart)/Math.max(1e-3,a2-outStart));
+        if(i===0&&x<a1)o=1;
+        ch.style.opacity=o.toFixed(3);ch.style.filter=o>.995?'none':'blur('+((1-o)*8).toFixed(1)+'px)';ch.style.transform=o>.995?'none':'translateY('+((1-o)*(x<a1?18:-18)).toFixed(1)+'px)'});
       const bar=sec.querySelector('.pbar i');if(bar)bar.style.transform='scaleY('+(.15+x*.85).toFixed(3)+')'}
     const r=jg.getBoundingClientRect(),x=Math.max(0,Math.min(1,-r.top/Math.max(1,r.height-innerHeight)));
     const past=r.bottom<innerHeight?Math.max(0,Math.min(1,(innerHeight-r.bottom)/(innerHeight*1.2))):0;const tgt=x>=1?1-.45*past:x;
